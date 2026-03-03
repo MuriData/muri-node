@@ -1,0 +1,41 @@
+# murid — MuriData storage provider node configuration
+
+[chain]
+rpc_url = "http://127.0.0.1:9650/ext/bc/C/rpc"
+chain_id = 43113
+market_address = "0x0000000000000000000000000000000000000000"
+staking_address = ""   # auto-resolved from market contract if empty
+gas_limit = 500000
+max_gas_price = 100    # gwei
+gas_escalation = 1.25  # multiplier per retry
+max_retries = 3
+confirmation_blocks = 1
+
+[ipfs]
+api_url = "http://127.0.0.1:5001"
+timeout = "30s"
+pin_files = true
+
+[node]
+private_key_path = "./keys/node.key"    # hex-encoded EVM private key
+data_dir = "./data"                      # local Merkle tree cache
+keys_dir = "./keys"                      # ZK prover/verifier keys (poi_prover.key, poi_verifier.key)
+secret_key_path = "./keys/secret.key"    # hex-encoded ZK secret key
+
+[storage]
+max_capacity = 1048576  # chunks
+min_price = 1000        # wei per chunk per period
+
+[auto_execute]
+enabled = true
+poll_interval = "30s"
+max_orders_to_fill = 5
+
+[challenge]
+poll_interval = "4s"
+gas_priority = 2       # gwei tip for priority
+safety_margin = 10     # respond this many blocks before deadline
+
+[log]
+level = "info"         # trace, debug, info, warn, error
+pretty = true
