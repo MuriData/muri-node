@@ -46,9 +46,3 @@ type ChallengeTask struct {
 	Randomness *big.Int
 	Deadline   *big.Int
 }
-
-// ProofResult holds the output from a ZK proof generation.
-type ProofResult struct {
-	SolidityProof [8]*big.Int
-	Commitment    [32]byte
-}

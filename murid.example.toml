@@ -7,6 +7,7 @@ market_address = "0x0000000000000000000000000000000000000000"
 staking_address = ""   # auto-resolved from market contract if empty
 gas_limit = 500000
 max_gas_price = 100    # gwei
+gas_priority = 2       # gwei tip for priority
 gas_escalation = 1.25  # multiplier per retry
 max_retries = 3
 confirmation_blocks = 1
@@ -33,7 +34,6 @@ max_orders_to_fill = 5
 
 [challenge]
 poll_interval = "4s"
-gas_priority = 2       # gwei tip for priority
 safety_margin = 10     # respond this many blocks before deadline
 
 [log]

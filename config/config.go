@@ -27,6 +27,7 @@ type ChainConfig struct {
 	StakingAddress     string  `toml:"staking_address"`
 	GasLimit           uint64  `toml:"gas_limit"`
 	MaxGasPrice        uint64  `toml:"max_gas_price"`        // gwei
+	GasPriority        uint64  `toml:"gas_priority"`         // gwei tip
 	GasEscalation      float64 `toml:"gas_escalation"`       // multiplier per retry
 	MaxRetries         int     `toml:"max_retries"`
 	ConfirmationBlocks uint64  `toml:"confirmation_blocks"`
@@ -63,7 +64,6 @@ type AutoExecuteConfig struct {
 // ChallengeConfig controls challenge response behavior.
 type ChallengeConfig struct {
 	PollInterval tomlDuration `toml:"poll_interval"`
-	GasPriority  uint64       `toml:"gas_priority"` // gwei tip
 	SafetyMargin uint64       `toml:"safety_margin"` // blocks before deadline to respond
 }
 
@@ -106,6 +106,7 @@ func DefaultConfig() *Config {
 		Chain: ChainConfig{
 			GasLimit:           500_000,
 			MaxGasPrice:        100,
+			GasPriority:        2,
 			GasEscalation:      1.25,
 			MaxRetries:         3,
 			ConfirmationBlocks: 1,
@@ -126,7 +127,6 @@ func DefaultConfig() *Config {
 		},
 		Challenge: ChallengeConfig{
 			PollInterval: tomlDuration{4 * time.Second},
-			GasPriority:  2,
 			SafetyMargin: 10,
 		},
 		Log: LogConfig{
@@ -158,6 +158,12 @@ func (c *Config) Validate() error {
 	}
 	if c.Chain.GasEscalation < 1.0 {
 		return fmt.Errorf("chain.gas_escalation must be >= 1.0")
+	}
+	if c.Chain.GasPriority == 0 {
+		return fmt.Errorf("chain.gas_priority must be > 0")
+	}
+	if c.Chain.MaxGasPrice > 0 && c.Chain.MaxGasPrice < c.Chain.GasPriority {
+		return fmt.Errorf("chain.max_gas_price must be >= chain.gas_priority")
 	}
 	if c.Challenge.SafetyMargin == 0 {
 		return fmt.Errorf("challenge.safety_margin must be > 0")

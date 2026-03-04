@@ -57,33 +57,7 @@
   },
   {
     "type": "function",
-    "name": "MIN_ARCHIVE_CHUNKS",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "MIN_PROOF_FAILURE_SLASH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "MURI_PROOF_WINDOW_BLOCKS",
     "inputs": [],
     "outputs": [
       {
@@ -155,108 +129,6 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "archiveMuriVerifier",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract Verifier"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "archivePackingVerifier",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract Verifier"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "archivePoiVerifier",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract Verifier"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "archiveReplicaRoots",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "archives",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "originalRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalRealChunks",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "archivePeriods",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "startPeriod",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "creator",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -369,49 +241,6 @@
   },
   {
     "type": "function",
-    "name": "commitArchiveReplica",
-    "inputs": [
-      {
-        "name": "_orderIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "_originalRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_replicaRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_archivePeriods",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "_packingProof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
-      },
-      {
-        "name": "_manifestCommitment",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_totalRealChunks",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "completeExpiredOrder",
     "inputs": [
       {
@@ -457,24 +286,6 @@
         "name": "_orderId",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "expireLapsedCommit",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_node",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -548,45 +359,6 @@
         "name": "isExpired",
         "type": "bool[5]",
         "internalType": "bool[5]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getArchiveInfo",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "originalRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalRealChunks",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "archivePeriods",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
-        "name": "startPeriod",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "creator",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -728,55 +500,6 @@
         "name": "challengeableOrdersCount",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getMURIChallengeInfo",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_node",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "replicaRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "challengeRandomness",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "commitBlock",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "deadlineBlock",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "randomnessSealed",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "resolved",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -1312,83 +1035,6 @@
   },
   {
     "type": "function",
-    "name": "muriChallenges",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "replicaRootHash",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "poiSlotRandomness",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "challengeRandomness",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "commitBlock",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "deadlineBlock",
-        "type": "uint64",
-        "internalType": "uint64"
-      },
-      {
-        "name": "randomnessSealed",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "resolved",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "nextArchiveId",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "nextOrderId",
     "inputs": [],
     "outputs": [
@@ -1415,35 +1061,6 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "nodeArchives",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "verified",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -1795,30 +1412,6 @@
   },
   {
     "type": "function",
-    "name": "pendingMURIChallenges",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "pendingRefunds",
     "inputs": [
       {
@@ -2015,24 +1608,6 @@
   },
   {
     "type": "function",
-    "name": "sealMURIRandomness",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_node",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "setReporterRewardBps",
     "inputs": [
       {
@@ -2083,24 +1658,6 @@
   },
   {
     "type": "function",
-    "name": "slashExpiredMURI",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_node",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "slashNode",
     "inputs": [
       {
@@ -2117,24 +1674,6 @@
         "name": "_reason",
         "type": "string",
         "internalType": "string"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "submitMURIProof",
-    "inputs": [
-      {
-        "name": "_archiveId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_proof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
       }
     ],
     "outputs": [],
@@ -2237,37 +1776,6 @@
   },
   {
     "type": "event",
-    "name": "ArchiveCommitted",
-    "inputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "originalRootHash",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "replicaRootHash",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "CancellationPenaltyDistributed",
     "inputs": [
       {
@@ -2353,100 +1861,6 @@
       },
       {
         "name": "slashAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MURICommitLapsed",
-    "inputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "slashAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MURIProofExpired",
-    "inputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "slashAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MURIProofSubmitted",
-    "inputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MURIRandomnessSealed",
-    "inputs": [
-      {
-        "name": "archiveId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "node",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "challengeRandomness",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"

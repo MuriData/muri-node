@@ -102,7 +102,10 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 	}
 
 	// 6. Extract proof points for Solidity
-	solidityProof := extractSolidityProof(proof)
+	solidityProof, err := extractSolidityProof(proof)
+	if err != nil {
+		return nil, fmt.Errorf("extract solidity proof: %w", err)
+	}
 
 	// 7. Convert commitment to [32]byte
 	var commitment [32]byte
@@ -144,7 +147,10 @@ func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][
 		return nil, fmt.Errorf("local verify failed: %w", err)
 	}
 
-	solidityProof := extractSolidityProof(proof)
+	solidityProof, err := extractSolidityProof(proof)
+	if err != nil {
+		return nil, fmt.Errorf("extract solidity proof: %w", err)
+	}
 
 	var commitment [32]byte
 	commitBytes := result.Commitment.Bytes()
@@ -175,8 +181,11 @@ func PublicKeyFromSecret(sk *big.Int) *big.Int {
 
 // extractSolidityProof extracts the 8 uint256 values from a Groth16 proof.
 // Format: [A.x, A.y, B.x1, B.x0, B.y1, B.y0, C.x, C.y]
-func extractSolidityProof(proof groth16.Proof) [8]*big.Int {
-	bn254Proof := proof.(*groth16bn254.Proof)
+func extractSolidityProof(proof groth16.Proof) ([8]*big.Int, error) {
+	bn254Proof, ok := proof.(*groth16bn254.Proof)
+	if !ok {
+		return [8]*big.Int{}, fmt.Errorf("expected bn254 proof, got %T", proof)
+	}
 
 	aX, aY := new(big.Int), new(big.Int)
 	bn254Proof.Ar.X.BigInt(aX)
@@ -194,5 +203,5 @@ func extractSolidityProof(proof groth16.Proof) [8]*big.Int {
 	bn254Proof.Krs.Y.BigInt(cY)
 
 	// Solidity format: [A.x, A.y, B.x1, B.x0, B.y1, B.y0, C.x, C.y]
-	return [8]*big.Int{aX, aY, bX1, bX0, bY1, bY0, cX, cY}
+	return [8]*big.Int{aX, aY, bX1, bX0, bY1, bY0, cX, cY}, nil
 }

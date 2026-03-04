@@ -76,6 +76,30 @@ func (s *Store) DeleteTree(orderID *big.Int) error {
 	return nil
 }
 
+// ListCachedOrderIDs scans the data directory for cached SMT files and returns their order IDs.
+func (s *Store) ListCachedOrderIDs() ([]*big.Int, error) {
+	entries, err := os.ReadDir(s.dataDir)
+	if err != nil {
+		return nil, fmt.Errorf("read data dir: %w", err)
+	}
+
+	var ids []*big.Int
+	for _, e := range entries {
+		name := e.Name()
+		if !strings.HasPrefix(name, "order_") || !strings.HasSuffix(name, ".smt") {
+			continue
+		}
+		idStr := strings.TrimPrefix(name, "order_")
+		idStr = strings.TrimSuffix(idStr, ".smt")
+		id, ok := new(big.Int).SetString(idStr, 10)
+		if !ok {
+			continue
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
 // SaveSecretKey writes a secret key to a hex file.
 func SaveSecretKey(path string, sk *big.Int) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {

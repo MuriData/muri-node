@@ -227,7 +227,7 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 
 	// 3. Build or load cached SMT, then generate proof
 	proveStart := time.Now()
-	smt, chunks, err := n.loadOrBuildSMT(orderID, fileData)
+	smt, chunks, err := n.loadOrBuildSMT(orderID, fileData, order.RootHash)
 	if err != nil {
 		return fmt.Errorf("build smt: %w", err)
 	}
@@ -289,15 +289,21 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		return fmt.Errorf("get node info: %w", err)
 	}
 
+	// Apply local capacity cap if configured
+	capacity := info.Capacity
+	if n.cfg.Storage.MaxCapacity > 0 && n.cfg.Storage.MaxCapacity < capacity {
+		capacity = n.cfg.Storage.MaxCapacity
+	}
+
 	// Guard against uint64 underflow after slashing reduces capacity below used
-	if info.Used > info.Capacity {
+	if info.Used > capacity {
 		log.Warn().
-			Uint64("capacity", info.Capacity).
+			Uint64("capacity", capacity).
 			Uint64("used", info.Used).
 			Msg("used exceeds capacity (slashed?), skipping order check")
 		return nil
 	}
-	availableCapacity := info.Capacity - info.Used
+	availableCapacity := capacity - info.Used
 
 	if availableCapacity == 0 {
 		log.Debug().Msg("no available capacity, skipping order check")
@@ -370,7 +376,7 @@ func (n *Node) checkOrders(ctx context.Context) error {
 
 		// Build SMT and verify root matches on-chain
 		smt, _ := n.prover.BuildSMT(fileData)
-		if smt.Root.Cmp(order.RootHash) != 0 {
+		if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
 			log.Warn().
 				Str("orderID", orderID.String()).
 				Str("expected", fmt.Sprintf("0x%x", order.RootHash)).
@@ -482,6 +488,44 @@ func (n *Node) runMaintenance(ctx context.Context) {
 			log.Info().Str("tx", receipt.TxHash.Hex()).Msg("activated idle slots")
 		}
 	}
+
+	// Prune stale SMT caches for orders we no longer serve
+	n.pruneStaleCache(ctx)
+}
+
+// pruneStaleCache removes cached SMT files for orders the node is no longer serving.
+func (n *Node) pruneStaleCache(ctx context.Context) {
+	activeOrders, err := n.chain.GetNodeOrders(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("prune: failed to get node orders")
+		return
+	}
+
+	activeSet := make(map[string]bool, len(activeOrders))
+	for _, oid := range activeOrders {
+		activeSet[oid.String()] = true
+	}
+
+	cachedIDs, err := n.store.ListCachedOrderIDs()
+	if err != nil {
+		log.Warn().Err(err).Msg("prune: failed to list cached order IDs")
+		return
+	}
+
+	pruned := 0
+	for _, id := range cachedIDs {
+		if activeSet[id.String()] {
+			continue
+		}
+		if err := n.store.DeleteTree(id); err != nil {
+			log.Warn().Err(err).Str("orderID", id.String()).Msg("prune: failed to delete cache")
+		} else {
+			pruned++
+		}
+	}
+	if pruned > 0 {
+		log.Info().Int("pruned", pruned).Msg("pruned stale SMT caches")
+	}
 }
 
 // extractCID extracts an IPFS CID from a URI.
@@ -502,8 +546,9 @@ func extractCID(uri string) string {
 }
 
 // loadOrBuildSMT attempts to load a cached SMT from disk, falling back to
-// building one from the file data. Always returns chunks consistent with the SMT.
-func (n *Node) loadOrBuildSMT(orderID *big.Int, fileData []byte) (*merkle.SparseMerkleTree, [][]byte, error) {
+// building one from the file data. If expectedRoot is non-nil, the cached tree's
+// root is validated against it instead of rebuilding the full tree.
+func (n *Node) loadOrBuildSMT(orderID *big.Int, fileData []byte, expectedRoot *big.Int) (*merkle.SparseMerkleTree, [][]byte, error) {
 	// Always split chunks from the current file data — these chunks must be
 	// consistent with whichever SMT we return (cached or freshly built).
 	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
@@ -516,18 +561,16 @@ func (n *Node) loadOrBuildSMT(orderID *big.Int, fileData []byte) (*merkle.Sparse
 	}
 
 	if smt != nil {
-		// Validate cached tree is consistent with current file data
-		freshSMT := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
-		if smt.Root.Cmp(freshSMT.Root) == 0 {
+		// Validate cached tree root against the expected on-chain root
+		if expectedRoot != nil && smt.Root.Cmp(expectedRoot) == 0 {
 			log.Debug().Str("orderID", orderID.String()).Msg("using cached SMT")
 			return smt, chunks, nil
 		}
 		log.Warn().Str("orderID", orderID.String()).Msg("cached SMT root mismatch, rebuilding")
-		smt = freshSMT
-	} else {
-		// Build from scratch
-		smt = merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
 	}
+
+	// Build from scratch
+	smt = merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
 
 	// Cache for next time
 	if err := n.store.SaveTree(orderID, smt); err != nil {

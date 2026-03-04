@@ -108,7 +108,10 @@ func (c *Client) transactOpts(ctx context.Context) (*bind.TransactOpts, error) {
 	}
 
 	// EIP-1559 gas pricing
-	tip := new(big.Int).SetUint64(2_000_000_000) // 2 gwei default tip
+	tip := new(big.Int).Mul(
+		new(big.Int).SetUint64(c.cfg.GasPriority),
+		big.NewInt(1_000_000_000), // gwei → wei
+	)
 	opts.GasTipCap = tip
 
 	if c.cfg.MaxGasPrice > 0 {
@@ -157,6 +160,10 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 				tip.Mul(tip, big.NewFloat(multiplier))
 				opts.GasTipCap, _ = tip.Int(nil)
 			}
+			// Clamp tip to not exceed fee cap
+			if opts.GasTipCap != nil && opts.GasFeeCap != nil && opts.GasTipCap.Cmp(opts.GasFeeCap) > 0 {
+				opts.GasTipCap.Set(opts.GasFeeCap)
+			}
 			log.Warn().Int("attempt", attempt+1).Float64("multiplier", multiplier).Msg("retrying with escalated gas")
 		}
 
@@ -175,9 +182,7 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 		}
 
 		if receipt.Status == 0 {
-			lastErr = fmt.Errorf("tx reverted: %s", tx.Hash().Hex())
-			log.Warn().Str("tx", tx.Hash().Hex()).Msg("tx reverted")
-			continue
+			return nil, fmt.Errorf("tx reverted: %s", tx.Hash().Hex())
 		}
 
 		return receipt, nil
