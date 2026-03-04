@@ -29,6 +29,10 @@ type Client struct {
 
 	Market  *bindings.FileMarket
 	Staking *bindings.NodeStaking
+
+	// WebSocket client and filterer for event subscriptions (nil if listen_mode == "poll").
+	wsEth    *ethclient.Client
+	Filterer *bindings.FileMarketFilterer
 }
 
 // NewClient connects to the chain and instantiates contract bindings.
@@ -61,6 +65,25 @@ func NewClient(ctx context.Context, cfg config.ChainConfig, privKeyHex string) (
 		Market:  market,
 	}
 
+	// Set up WebSocket client for event subscriptions if configured
+	if cfg.WSURL != "" {
+		wsEth, wsErr := ethclient.DialContext(ctx, cfg.WSURL)
+		if wsErr != nil {
+			log.Warn().Err(wsErr).Str("ws_url", cfg.WSURL).Msg("failed to connect WebSocket client, events will be unavailable")
+		} else {
+			c.wsEth = wsEth
+			filterer, fErr := bindings.NewFileMarketFilterer(marketAddr, wsEth)
+			if fErr != nil {
+				log.Warn().Err(fErr).Msg("failed to create event filterer, events will be unavailable")
+				wsEth.Close()
+				c.wsEth = nil
+			} else {
+				c.Filterer = filterer
+				log.Info().Str("ws_url", cfg.WSURL).Msg("WebSocket event subscriptions enabled")
+			}
+		}
+	}
+
 	// Resolve staking address from contract if not configured
 	stakingAddr := common.HexToAddress(cfg.StakingAddress)
 	if stakingAddr == (common.Address{}) {
@@ -90,8 +113,11 @@ func (c *Client) BlockNumber(ctx context.Context) (uint64, error) {
 	return c.eth.BlockNumber(ctx)
 }
 
-// Close shuts down the client connection.
+// Close shuts down the client connections.
 func (c *Client) Close() {
+	if c.wsEth != nil {
+		c.wsEth.Close()
+	}
 	c.eth.Close()
 }
 

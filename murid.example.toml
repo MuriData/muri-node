@@ -11,6 +11,9 @@ gas_priority = 2       # gwei tip for priority
 gas_escalation = 1.25  # multiplier per retry
 max_retries = 3
 confirmation_blocks = 1
+listen_mode = "poll"   # "poll" or "events" (WebSocket event subscriptions)
+ws_url = ""            # WebSocket URL (required if listen_mode = "events")
+                       # e.g. "ws://127.0.0.1:9650/ext/bc/C/ws"
 
 [ipfs]
 api_url = "http://127.0.0.1:5001"

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -31,6 +32,8 @@ type ChainConfig struct {
 	GasEscalation      float64 `toml:"gas_escalation"`       // multiplier per retry
 	MaxRetries         int     `toml:"max_retries"`
 	ConfirmationBlocks uint64  `toml:"confirmation_blocks"`
+	ListenMode         string  `toml:"listen_mode"`          // "poll" or "events"
+	WSURL              string  `toml:"ws_url"`               // WebSocket URL for event subscriptions
 }
 
 // IPFSConfig holds IPFS Kubo API settings.
@@ -110,6 +113,7 @@ func DefaultConfig() *Config {
 			GasEscalation:      1.25,
 			MaxRetries:         3,
 			ConfirmationBlocks: 1,
+			ListenMode:         "poll",
 		},
 		IPFS: IPFSConfig{
 			APIURL:   "http://127.0.0.1:5001",
@@ -167,6 +171,17 @@ func (c *Config) Validate() error {
 	}
 	if c.Challenge.SafetyMargin == 0 {
 		return fmt.Errorf("challenge.safety_margin must be > 0")
+	}
+	if c.Chain.ListenMode != "poll" && c.Chain.ListenMode != "events" {
+		return fmt.Errorf("chain.listen_mode must be \"poll\" or \"events\"")
+	}
+	if c.Chain.ListenMode == "events" {
+		if c.Chain.WSURL == "" {
+			return fmt.Errorf("chain.ws_url is required when listen_mode is \"events\"")
+		}
+		if !strings.HasPrefix(c.Chain.WSURL, "ws://") && !strings.HasPrefix(c.Chain.WSURL, "wss://") {
+			return fmt.Errorf("chain.ws_url must start with ws:// or wss://")
+		}
 	}
 	return nil
 }

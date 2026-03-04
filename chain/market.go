@@ -10,6 +10,22 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+// GetSlotInfo returns a single challenge slot's full state (including randomness).
+func (c *Client) GetSlotInfo(ctx context.Context, slotIndex int) (types.ChallengeSlotInfo, error) {
+	result, err := c.Market.GetSlotInfo(c.callOpts(ctx), big.NewInt(int64(slotIndex)))
+	if err != nil {
+		return types.ChallengeSlotInfo{}, fmt.Errorf("getSlotInfo(%d): %w", slotIndex, err)
+	}
+	return types.ChallengeSlotInfo{
+		Index:          slotIndex,
+		OrderID:        result.OrderId,
+		ChallengedNode: result.ChallengedNode,
+		Randomness:     result.Randomness,
+		DeadlineBlock:  result.DeadlineBlock,
+		IsExpired:      result.IsExpired,
+	}, nil
+}
+
 // GetAllSlotInfo returns all 5 challenge slot states.
 func (c *Client) GetAllSlotInfo(ctx context.Context) ([]types.ChallengeSlotInfo, error) {
 	result, err := c.Market.GetAllSlotInfo(c.callOpts(ctx))

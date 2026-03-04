@@ -126,8 +126,16 @@ func (n *Node) Run(ctx context.Context) error {
 	}
 }
 
-// challengeLoop polls challenge slots and responds to challenges targeting this node.
+// challengeLoop dispatches to event-based or poll-based challenge listening.
 func (n *Node) challengeLoop(ctx context.Context) error {
+	if n.cfg.Chain.ListenMode == "events" && n.chain.Filterer != nil {
+		return n.challengeLoopEvents(ctx)
+	}
+	return n.challengeLoopPoll(ctx)
+}
+
+// challengeLoopPoll polls challenge slots at a fixed interval.
+func (n *Node) challengeLoopPoll(ctx context.Context) error {
 	interval := n.cfg.Challenge.PollInterval.Duration
 	if interval == 0 {
 		interval = 4 * time.Second
@@ -136,7 +144,7 @@ func (n *Node) challengeLoop(ctx context.Context) error {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	log.Info().Dur("interval", interval).Msg("challenge loop started")
+	log.Info().Dur("interval", interval).Msg("challenge loop started (poll mode)")
 
 	for {
 		select {
@@ -145,6 +153,54 @@ func (n *Node) challengeLoop(ctx context.Context) error {
 		case <-ticker.C:
 			if err := n.checkChallenges(ctx); err != nil {
 				log.Error().Err(err).Msg("challenge check failed")
+			}
+		}
+	}
+}
+
+// challengeLoopEvents listens for SlotChallengeIssued events via WebSocket,
+// with a fallback poll ticker to catch anything events may miss.
+func (n *Node) challengeLoopEvents(ctx context.Context) error {
+	listener := chain.NewEventListener(n.chain)
+	challengeCh, err := listener.SubscribeChallenges(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe challenges, falling back to poll mode")
+		return n.challengeLoopPoll(ctx)
+	}
+
+	// Fallback poll at a much slower rate — events handle the fast path
+	fallbackInterval := 30 * time.Second
+	fallbackTicker := time.NewTicker(fallbackInterval)
+	defer fallbackTicker.Stop()
+
+	log.Info().Dur("fallback_interval", fallbackInterval).Msg("challenge loop started (event mode)")
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case slot, ok := <-challengeCh:
+			if !ok {
+				// Subscription closed after max retries — fall through to poll mode
+				log.Warn().Msg("challenge event channel closed, switching to poll mode")
+				return n.challengeLoopPoll(ctx)
+			}
+			if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
+				continue
+			}
+			log.Info().
+				Int("slot", slot.Index).
+				Str("orderID", slot.OrderID.String()).
+				Msg("responding to challenge (event-triggered)")
+
+			if err := n.respondToChallenge(ctx, slot.Index, slot.OrderID, slot.Randomness); err != nil {
+				log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
+			}
+
+		case <-fallbackTicker.C:
+			if err := n.checkChallenges(ctx); err != nil {
+				log.Error().Err(err).Msg("challenge fallback check failed")
 			}
 		}
 	}
@@ -257,8 +313,16 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	return nil
 }
 
-// orderLoop polls for new orders and auto-executes matching ones.
+// orderLoop dispatches to event-based or poll-based order listening.
 func (n *Node) orderLoop(ctx context.Context) error {
+	if n.cfg.Chain.ListenMode == "events" && n.chain.Filterer != nil {
+		return n.orderLoopEvents(ctx)
+	}
+	return n.orderLoopPoll(ctx)
+}
+
+// orderLoopPoll polls for new orders at a fixed interval.
+func (n *Node) orderLoopPoll(ctx context.Context) error {
 	interval := n.cfg.AutoExecute.PollInterval.Duration
 	if interval == 0 {
 		interval = 30 * time.Second
@@ -267,7 +331,7 @@ func (n *Node) orderLoop(ctx context.Context) error {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	log.Info().Dur("interval", interval).Msg("order loop started")
+	log.Info().Dur("interval", interval).Msg("order loop started (poll mode)")
 
 	for {
 		select {
@@ -276,6 +340,46 @@ func (n *Node) orderLoop(ctx context.Context) error {
 		case <-ticker.C:
 			if err := n.checkOrders(ctx); err != nil {
 				log.Error().Err(err).Msg("order check failed")
+			}
+		}
+	}
+}
+
+// orderLoopEvents listens for OrderPlaced events via WebSocket,
+// with a fallback poll ticker.
+func (n *Node) orderLoopEvents(ctx context.Context) error {
+	listener := chain.NewEventListener(n.chain)
+	orderCh, err := listener.SubscribeNewOrders(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to subscribe orders, falling back to poll mode")
+		return n.orderLoopPoll(ctx)
+	}
+
+	// Fallback poll at a slower rate than pure poll mode
+	fallbackInterval := 60 * time.Second
+	fallbackTicker := time.NewTicker(fallbackInterval)
+	defer fallbackTicker.Stop()
+
+	log.Info().Dur("fallback_interval", fallbackInterval).Msg("order loop started (event mode)")
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case _, ok := <-orderCh:
+			if !ok {
+				log.Warn().Msg("order event channel closed, switching to poll mode")
+				return n.orderLoopPoll(ctx)
+			}
+			// New order placed — re-evaluate all candidates
+			if err := n.checkOrders(ctx); err != nil {
+				log.Error().Err(err).Msg("order check failed (event-triggered)")
+			}
+
+		case <-fallbackTicker.C:
+			if err := n.checkOrders(ctx); err != nil {
+				log.Error().Err(err).Msg("order fallback check failed")
 			}
 		}
 	}
