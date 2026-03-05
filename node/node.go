@@ -14,8 +14,25 @@ import (
 	"github.com/MuriData/muri-node/storage"
 	"github.com/MuriData/muri-zkproof/circuits/poi"
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
 )
+
+// snarkScalarField is the BN254 scalar field modulus.
+var snarkScalarField, _ = new(big.Int).SetString("21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+
+// deriveExecutionRandomness computes deterministic randomness for executeOrder
+// PoI proof as keccak256(fileRoot, publicKey) % SNARK_SCALAR_FIELD.
+func deriveExecutionRandomness(fileRoot, publicKey *big.Int) *big.Int {
+	rootBytes := make([]byte, 32)
+	pkBytes := make([]byte, 32)
+	fileRoot.FillBytes(rootBytes)
+	publicKey.FillBytes(pkBytes)
+	hash := crypto.Keccak256(append(rootBytes, pkBytes...))
+	r := new(big.Int).SetBytes(hash)
+	r.Mod(r, snarkScalarField)
+	return r
+}
 
 // Node is the MuriData storage provider daemon.
 type Node struct {
@@ -479,7 +496,7 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		}
 
 		// Build SMT and verify root matches on-chain
-		smt, _ := n.prover.BuildSMT(fileData)
+		smt, chunks := n.prover.BuildSMT(fileData)
 		if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
 			log.Warn().
 				Str("orderID", orderID.String()).
@@ -489,8 +506,17 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			continue
 		}
 
-		// Execute order on-chain
-		receipt, err := n.chain.ExecuteOrder(ctx, orderID)
+		// Generate PoI proof for execution (proves data possession)
+		publicKey := prover.PublicKeyFromSecret(n.secretKey)
+		randomness := deriveExecutionRandomness(order.RootHash, publicKey)
+		proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+		if err != nil {
+			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: proof generation failed")
+			continue
+		}
+
+		// Execute order on-chain with proof
+		receipt, err := n.chain.ExecuteOrder(ctx, orderID, proofResult.SolidityProof, proofResult.Commitment)
 		if err != nil {
 			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("execute order failed")
 			continue

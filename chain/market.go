@@ -26,15 +26,16 @@ func (c *Client) GetSlotInfo(ctx context.Context, slotIndex int) (types.Challeng
 	}, nil
 }
 
-// GetAllSlotInfo returns all 5 challenge slot states.
+// GetAllSlotInfo returns all challenge slot states (dynamic count via sqrt scaling).
 func (c *Client) GetAllSlotInfo(ctx context.Context) ([]types.ChallengeSlotInfo, error) {
 	result, err := c.Market.GetAllSlotInfo(c.callOpts(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getAllSlotInfo: %w", err)
 	}
 
-	slots := make([]types.ChallengeSlotInfo, 5)
-	for i := 0; i < 5; i++ {
+	n := len(result.OrderIds)
+	slots := make([]types.ChallengeSlotInfo, n)
+	for i := 0; i < n; i++ {
 		slots[i] = types.ChallengeSlotInfo{
 			Index:          i,
 			OrderID:        result.OrderIds[i],
@@ -113,10 +114,10 @@ func (c *Client) GetGlobalStats(ctx context.Context) (struct {
 	return c.Market.GetGlobalStats(c.callOpts(ctx))
 }
 
-// ExecuteOrder claims a replica slot on the given order.
-func (c *Client) ExecuteOrder(ctx context.Context, orderID *big.Int) (*ethtypes.Receipt, error) {
+// ExecuteOrder claims a replica slot on the given order with a PoI proof of data possession.
+func (c *Client) ExecuteOrder(ctx context.Context, orderID *big.Int, proof [8]*big.Int, commitment [32]byte) (*ethtypes.Receipt, error) {
 	return c.SendTx(ctx, func(opts *bind.TransactOpts) (*ethtypes.Transaction, error) {
-		return c.Market.ExecuteOrder(opts, orderID)
+		return c.Market.ExecuteOrder(opts, orderID, proof, commitment)
 	})
 }
 

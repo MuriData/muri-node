@@ -37,7 +37,7 @@ type MarketStorageFileMeta struct {
 
 // FileMarketMetaData contains all meta data concerning the FileMarket contract.
 var FileMarketMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"receive\",\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"CHALLENGE_WINDOW_BLOCKS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_FORCED_EXITS_PER_SWEEP\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_REPORTER_REWARD_BPS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_SWEEP_PER_CALL\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MIN_PROOF_FAILURE_SLASH\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"NUM_CHALLENGE_SLOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"activateSlots\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"activeOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"aggregateActiveEscrow\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"aggregateActiveWithdrawn\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"challengeSlots\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"deadlineBlock\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"challengeSlotsInitialized\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"challengeableOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"claimReporterRewards\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"claimRewards\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"cleanupCursor\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"completeExpiredOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"currentEpoch\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"currentPeriod\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"executeOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"fspVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getActiveOrders\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getActiveOrdersCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getAllSlotInfo\",\"inputs\":[],\"outputs\":[{\"name\":\"orderIds\",\"type\":\"uint256[5]\",\"internalType\":\"uint256[5]\"},{\"name\":\"challengedNodes\",\"type\":\"address[5]\",\"internalType\":\"address[5]\"},{\"name\":\"randomnesses\",\"type\":\"uint256[5]\",\"internalType\":\"uint256[5]\"},{\"name\":\"deadlineBlocks\",\"type\":\"uint256[5]\",\"internalType\":\"uint256[5]\"},{\"name\":\"isExpired\",\"type\":\"bool[5]\",\"internalType\":\"bool[5]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getChallengeableOrders\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getChallengeableOrdersCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getClaimableRewards\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"claimable\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getFinancialStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalContractBalance\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalEscrowHeld\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalRewardsPaid\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"averageOrderValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalStakeValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getGlobalStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalOrders\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"activeOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalEscrowLocked\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalNodes\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalCapacityStaked\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalCapacityUsed\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentRandomnessValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"activeChallengeSlots\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentPeriod_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBlock_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeableOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeChallengeStatus\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"activeChallenges\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeEarningsInfo\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"totalEarned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"claimable\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"lastClaimPeriod\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeOrderEarnings\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeOrders\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderDetails\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"owner_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"uri_\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"root_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"numChunks_\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"periods_\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"replicas_\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"filled_\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderEscrowInfo\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"totalEscrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"paidToNodes\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"remainingEscrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderFinancials\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"escrow_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"startPeriod_\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"expired_\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"nodes_\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderNodes\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getProofSystemStats\",\"inputs\":[],\"outputs\":[{\"name\":\"activeSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"idleSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiredSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBlockNumber\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeWindowBlocks\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeableOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getRecentOrders\",\"inputs\":[{\"name\":\"count\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderIds\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"owners\",\"type\":\"address[]\",\"internalType\":\"address[]\"},{\"name\":\"numChunks\",\"type\":\"uint32[]\",\"internalType\":\"uint32[]\"},{\"name\":\"periods\",\"type\":\"uint16[]\",\"internalType\":\"uint16[]\"},{\"name\":\"replicas\",\"type\":\"uint8[]\",\"internalType\":\"uint8[]\"},{\"name\":\"filled\",\"type\":\"uint8[]\",\"internalType\":\"uint8[]\"},{\"name\":\"escrows\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"isActive\",\"type\":\"bool[]\",\"internalType\":\"bool[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getReporterEarningsInfo\",\"inputs\":[{\"name\":\"_reporter\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"earned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"pending\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getSlashRedistributionStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalReceived\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalBurned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalRewards\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBps\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getSlotInfo\",\"inputs\":[{\"name\":\"_slotIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"randomness\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"deadlineBlock\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"isExpired\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"globalSeedRandomness\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasUnresolvedProofObligation\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isChallengeable\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isOrderExpired\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"keyleakVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractPlonkVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"lifetimeEscrowDeposited\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"lifetimeRewardsPaid\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nextOrderId\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeActiveChallengeCount\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeLastClaimPeriod\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeOrderEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeOrderStartTimestamp\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodePendingRewards\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeStaking\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractNodeStaking\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeToOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderActiveChallengeCount\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderEscrowWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderIndexInActive\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderIndexInChallengeable\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderToNodes\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"file\",\"type\":\"tuple\",\"internalType\":\"structMarketStorage.FileMeta\",\"components\":[{\"name\":\"root\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"uri\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"name\":\"numChunks\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"periods\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"replicas\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"price\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"filled\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"startPeriod\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"escrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pendingRefunds\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"placeOrder\",\"inputs\":[{\"name\":\"_file\",\"type\":\"tuple\",\"internalType\":\"structMarketStorage.FileMeta\",\"components\":[{\"name\":\"root\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"uri\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"name\":\"_numChunks\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"_periods\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"_replicas\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"_pricePerChunkPerPeriod\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_fspProof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"poiVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"processExpiredSlots\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"quitOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reportKeyLeak\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_proof\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reporterEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterPendingRewards\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterRewardBps\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"setReporterRewardBps\",\"inputs\":[{\"name\":\"_newBps\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSlashAuthority\",\"inputs\":[{\"name\":\"_authority\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_allowed\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"slashAuthorities\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"slashNode\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_slashAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_reason\",\"type\":\"string\",\"internalType\":\"string\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"submitProof\",\"inputs\":[{\"name\":\"_slotIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_proof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"},{\"name\":\"_commitment\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"totalBurnedFromSlash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalCancellationPenalties\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalReporterRewards\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalSlashedReceived\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"_newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdrawRefund\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"CancellationPenaltyDistributed\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"penaltyAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"nodeCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ExpiredSlotsProcessed\",\"inputs\":[{\"name\":\"processedCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ForcedOrderExits\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"orderIds\",\"type\":\"uint256[]\",\"indexed\":false,\"internalType\":\"uint256[]\"},{\"name\":\"totalFreed\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"KeyLeakReported\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"NodeQuit\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"NodeSlashed\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"reason\",\"type\":\"string\",\"indexed\":false,\"internalType\":\"string\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderCancelled\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"refundAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderCompleted\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderFulfilled\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderPlaced\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"owner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"numChunks\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"periods\",\"type\":\"uint16\",\"indexed\":false,\"internalType\":\"uint16\"},{\"name\":\"replicas\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderUnderReplicated\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"currentFilled\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"},{\"name\":\"desiredReplicas\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RefundQueued\",\"inputs\":[{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RefundWithdrawn\",\"inputs\":[{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardAccrued\",\"inputs\":[{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"slashedAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardBpsUpdated\",\"inputs\":[{\"name\":\"oldBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"newBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardsClaimed\",\"inputs\":[{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RewardsCalculated\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"periods\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RewardsClaimed\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlashAuthorityUpdated\",\"inputs\":[{\"name\":\"authority\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"allowed\",\"type\":\"bool\",\"indexed\":false,\"internalType\":\"bool\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotChallengeIssued\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"deadlineBlock\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotDeactivated\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotExpired\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"failedNode\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotProofSubmitted\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"prover\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"commitment\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotsActivated\",\"inputs\":[{\"name\":\"activatedCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false}]",
+	ABI: "[{\"type\":\"receive\",\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"CANCEL_PENALTY_MAX_BPS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"CANCEL_PENALTY_MIN_BPS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"CHALLENGE_WINDOW_BLOCKS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_CHALLENGE_SLOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_CLIENT_COMPENSATION_BPS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_FORCED_EXITS_PER_SWEEP\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_PROOF_FAILURE_SLASH_MULTIPLIER\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_REPORTER_REWARD_BPS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MAX_SWEEP_PER_CALL\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MIN_CHALLENGE_SLOTS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"MIN_PROOF_FAILURE_SLASH\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"UPGRADE_INTERFACE_VERSION\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"string\",\"internalType\":\"string\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"activateSlots\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"activeOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"aggregateActiveEscrow\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"aggregateActiveWithdrawn\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"challengeNode\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"challengeSlots\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"deadlineBlock\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"challengeSlotsInitialized\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"challengeStartBlock\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"challengeableOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"claimReporterRewards\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"claimRewards\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"cleanupCursor\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"clientCompensationBps\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"completeExpiredOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"currentEpoch\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"currentPeriod\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"executeOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_proof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"},{\"name\":\"_commitment\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"fspVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"genesisTs\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getActiveOrders\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getActiveOrdersCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getAllSlotInfo\",\"inputs\":[],\"outputs\":[{\"name\":\"orderIds\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"challengedNodes\",\"type\":\"address[]\",\"internalType\":\"address[]\"},{\"name\":\"randomnesses\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"deadlineBlocks\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"isExpired\",\"type\":\"bool[]\",\"internalType\":\"bool[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getChallengeableOrders\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getChallengeableOrdersCount\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getClaimableRewards\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"claimable\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getFinancialStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalContractBalance\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalEscrowHeld\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalRewardsPaid\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"averageOrderValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalStakeValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getGlobalStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalOrders\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"activeOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalEscrowLocked\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalNodes\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalCapacityStaked\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalCapacityUsed\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentRandomnessValue\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"activeChallengeSlots\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentPeriod_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBlock_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeableOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeChallengeStatus\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"activeChallenges\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeEarningsInfo\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"totalEarned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"claimable\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"lastClaimPeriod\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeOrderEarnings\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getNodeOrders\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderDetails\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"owner_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"uri_\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"root_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"numChunks_\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"periods_\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"replicas_\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"filled_\",\"type\":\"uint8\",\"internalType\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderEscrowInfo\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"totalEscrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"paidToNodes\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"remainingEscrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderFinancials\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"escrow_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"startPeriod_\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"expired_\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"nodes_\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getOrderNodes\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getProofSystemStats\",\"inputs\":[],\"outputs\":[{\"name\":\"activeSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"idleSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiredSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBlockNumber\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeWindowBlocks\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengeableOrdersCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalSlotsCount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getRecentOrders\",\"inputs\":[{\"name\":\"count\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderIds\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"owners\",\"type\":\"address[]\",\"internalType\":\"address[]\"},{\"name\":\"numChunks\",\"type\":\"uint32[]\",\"internalType\":\"uint32[]\"},{\"name\":\"periods\",\"type\":\"uint16[]\",\"internalType\":\"uint16[]\"},{\"name\":\"replicas\",\"type\":\"uint8[]\",\"internalType\":\"uint8[]\"},{\"name\":\"filled\",\"type\":\"uint8[]\",\"internalType\":\"uint8[]\"},{\"name\":\"escrows\",\"type\":\"uint256[]\",\"internalType\":\"uint256[]\"},{\"name\":\"isActive\",\"type\":\"bool[]\",\"internalType\":\"bool[]\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getReporterEarningsInfo\",\"inputs\":[{\"name\":\"_reporter\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"earned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"withdrawn\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"pending\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getSlashRedistributionStats\",\"inputs\":[],\"outputs\":[{\"name\":\"totalReceived\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalBurned\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalRewards\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"currentBps\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"totalClientComp\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"getSlotInfo\",\"inputs\":[{\"name\":\"_slotIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"randomness\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"deadlineBlock\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"isExpired\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"globalSeedRandomness\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hasUnresolvedProofObligation\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_nodeStaking\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_poiVerifier\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_fspVerifier\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_keyleakVerifier\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"isChallengeable\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isOrderExpired\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"keyleakVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractPlonkVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"lifetimeEscrowDeposited\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"lifetimeRewardsPaid\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nextOrderId\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeActiveChallengeCount\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeLastClaimPeriod\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeOrderEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeOrderStartTimestamp\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodePendingRewards\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeStaking\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractNodeStaking\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeToOrders\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"nodeWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"numChallengeSlots\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"onDemandChallenges\",\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"deadlineBlock\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"randomness\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"challenger\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderActiveChallengeCount\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderEscrowWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderIndexInActive\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderIndexInChallengeable\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orderToNodes\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"orders\",\"inputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"file\",\"type\":\"tuple\",\"internalType\":\"structMarketStorage.FileMeta\",\"components\":[{\"name\":\"root\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"uri\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"name\":\"numChunks\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"periods\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"replicas\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"price\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"filled\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"startPeriod\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"escrow\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pendingRefunds\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"placeOrder\",\"inputs\":[{\"name\":\"_file\",\"type\":\"tuple\",\"internalType\":\"structMarketStorage.FileMeta\",\"components\":[{\"name\":\"root\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"uri\",\"type\":\"string\",\"internalType\":\"string\"}]},{\"name\":\"_numChunks\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"_periods\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"_replicas\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"_pricePerChunkPerPeriod\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_fspProof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"}],\"outputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"poiVerifier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"contractVerifier\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"processExpiredOnDemandChallenge\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"processExpiredSlots\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"proofFailureSlashMultiplier\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"proxiableUUID\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"quitOrder\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reportKeyLeak\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_proof\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"reporterEarnings\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterPendingRewards\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterRewardBps\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"reporterWithdrawn\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"setChallengeStartBlock\",\"inputs\":[{\"name\":\"_block\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setClientCompensationBps\",\"inputs\":[{\"name\":\"_newBps\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setProofFailureSlashMultiplier\",\"inputs\":[{\"name\":\"_newMultiplier\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setReporterRewardBps\",\"inputs\":[{\"name\":\"_newBps\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"setSlashAuthority\",\"inputs\":[{\"name\":\"_authority\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_allowed\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"slashAuthorities\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"slashNode\",\"inputs\":[{\"name\":\"_node\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"_slashAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_reason\",\"type\":\"string\",\"internalType\":\"string\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"submitOnDemandProof\",\"inputs\":[{\"name\":\"_orderId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_proof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"},{\"name\":\"_commitment\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"submitProof\",\"inputs\":[{\"name\":\"_slotIndex\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"_proof\",\"type\":\"uint256[8]\",\"internalType\":\"uint256[8]\"},{\"name\":\"_commitment\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"sweepCursor\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalBurnedFromSlash\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalCancellationPenalties\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalClientCompensation\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalReporterRewards\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalSlashedReceived\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"_newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"upgradeToAndCall\",\"inputs\":[{\"name\":\"newImplementation\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"withdrawRefund\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"CancellationPenaltyDistributed\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"penaltyAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"nodeCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ChallengeSlotsScaled\",\"inputs\":[{\"name\":\"oldCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"newCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ClientCompensationAccrued\",\"inputs\":[{\"name\":\"client\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ClientCompensationBpsUpdated\",\"inputs\":[{\"name\":\"oldBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"newBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ExpiredSlotsProcessed\",\"inputs\":[{\"name\":\"processedCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ForcedOrderExits\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"orderIds\",\"type\":\"uint256[]\",\"indexed\":false,\"internalType\":\"uint256[]\"},{\"name\":\"totalFreed\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"KeyLeakReported\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"NodeQuit\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"NodeSlashed\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"reason\",\"type\":\"string\",\"indexed\":false,\"internalType\":\"string\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OnDemandChallengeExpired\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OnDemandChallengeIssued\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"challenger\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"deadlineBlock\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OnDemandProofSubmitted\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"commitment\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderCancelled\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"refundAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderCompleted\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderFulfilled\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderPlaced\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"owner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"numChunks\",\"type\":\"uint32\",\"indexed\":false,\"internalType\":\"uint32\"},{\"name\":\"periods\",\"type\":\"uint16\",\"indexed\":false,\"internalType\":\"uint16\"},{\"name\":\"replicas\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OrderUnderReplicated\",\"inputs\":[{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"currentFilled\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"},{\"name\":\"desiredReplicas\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"uint8\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ProofFailureSlashMultiplierUpdated\",\"inputs\":[{\"name\":\"oldMultiplier\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"newMultiplier\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RefundQueued\",\"inputs\":[{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RefundWithdrawn\",\"inputs\":[{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardAccrued\",\"inputs\":[{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"slashedAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardBpsUpdated\",\"inputs\":[{\"name\":\"oldBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"newBps\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ReporterRewardsClaimed\",\"inputs\":[{\"name\":\"reporter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RewardsCalculated\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"periods\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RewardsClaimed\",\"inputs\":[{\"name\":\"node\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlashAuthorityUpdated\",\"inputs\":[{\"name\":\"authority\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"allowed\",\"type\":\"bool\",\"indexed\":false,\"internalType\":\"bool\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotChallengeIssued\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"orderId\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"},{\"name\":\"challengedNode\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"deadlineBlock\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotDeactivated\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotExpired\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"failedNode\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"slashAmount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotProofSubmitted\",\"inputs\":[{\"name\":\"slotIndex\",\"type\":\"uint256\",\"indexed\":true,\"internalType\":\"uint256\"},{\"name\":\"prover\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"commitment\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"SlotsActivated\",\"inputs\":[{\"name\":\"activatedCount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Upgraded\",\"inputs\":[{\"name\":\"implementation\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AddressEmptyCode\",\"inputs\":[{\"name\":\"target\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"ERC1967InvalidImplementation\",\"inputs\":[{\"name\":\"implementation\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"ERC1967NonPayable\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"FailedCall\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidInitialization\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotInitializing\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"UUPSUnauthorizedCallContext\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"UUPSUnsupportedProxiableUUID\",\"inputs\":[{\"name\":\"slot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]}]",
 }
 
 // FileMarketABI is the input ABI used to generate the binding from.
@@ -186,6 +186,68 @@ func (_FileMarket *FileMarketTransactorRaw) Transact(opts *bind.TransactOpts, me
 	return _FileMarket.Contract.contract.Transact(opts, method, params...)
 }
 
+// CANCELPENALTYMAXBPS is a free data retrieval call binding the contract method 0x9fd76abe.
+//
+// Solidity: function CANCEL_PENALTY_MAX_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCaller) CANCELPENALTYMAXBPS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "CANCEL_PENALTY_MAX_BPS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CANCELPENALTYMAXBPS is a free data retrieval call binding the contract method 0x9fd76abe.
+//
+// Solidity: function CANCEL_PENALTY_MAX_BPS() view returns(uint256)
+func (_FileMarket *FileMarketSession) CANCELPENALTYMAXBPS() (*big.Int, error) {
+	return _FileMarket.Contract.CANCELPENALTYMAXBPS(&_FileMarket.CallOpts)
+}
+
+// CANCELPENALTYMAXBPS is a free data retrieval call binding the contract method 0x9fd76abe.
+//
+// Solidity: function CANCEL_PENALTY_MAX_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) CANCELPENALTYMAXBPS() (*big.Int, error) {
+	return _FileMarket.Contract.CANCELPENALTYMAXBPS(&_FileMarket.CallOpts)
+}
+
+// CANCELPENALTYMINBPS is a free data retrieval call binding the contract method 0xcd051260.
+//
+// Solidity: function CANCEL_PENALTY_MIN_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCaller) CANCELPENALTYMINBPS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "CANCEL_PENALTY_MIN_BPS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// CANCELPENALTYMINBPS is a free data retrieval call binding the contract method 0xcd051260.
+//
+// Solidity: function CANCEL_PENALTY_MIN_BPS() view returns(uint256)
+func (_FileMarket *FileMarketSession) CANCELPENALTYMINBPS() (*big.Int, error) {
+	return _FileMarket.Contract.CANCELPENALTYMINBPS(&_FileMarket.CallOpts)
+}
+
+// CANCELPENALTYMINBPS is a free data retrieval call binding the contract method 0xcd051260.
+//
+// Solidity: function CANCEL_PENALTY_MIN_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) CANCELPENALTYMINBPS() (*big.Int, error) {
+	return _FileMarket.Contract.CANCELPENALTYMINBPS(&_FileMarket.CallOpts)
+}
+
 // CHALLENGEWINDOWBLOCKS is a free data retrieval call binding the contract method 0x8a1213ca.
 //
 // Solidity: function CHALLENGE_WINDOW_BLOCKS() view returns(uint256)
@@ -217,6 +279,68 @@ func (_FileMarket *FileMarketCallerSession) CHALLENGEWINDOWBLOCKS() (*big.Int, e
 	return _FileMarket.Contract.CHALLENGEWINDOWBLOCKS(&_FileMarket.CallOpts)
 }
 
+// MAXCHALLENGESLOTS is a free data retrieval call binding the contract method 0x34b09aa8.
+//
+// Solidity: function MAX_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketCaller) MAXCHALLENGESLOTS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "MAX_CHALLENGE_SLOTS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MAXCHALLENGESLOTS is a free data retrieval call binding the contract method 0x34b09aa8.
+//
+// Solidity: function MAX_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketSession) MAXCHALLENGESLOTS() (*big.Int, error) {
+	return _FileMarket.Contract.MAXCHALLENGESLOTS(&_FileMarket.CallOpts)
+}
+
+// MAXCHALLENGESLOTS is a free data retrieval call binding the contract method 0x34b09aa8.
+//
+// Solidity: function MAX_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) MAXCHALLENGESLOTS() (*big.Int, error) {
+	return _FileMarket.Contract.MAXCHALLENGESLOTS(&_FileMarket.CallOpts)
+}
+
+// MAXCLIENTCOMPENSATIONBPS is a free data retrieval call binding the contract method 0x1fab58cc.
+//
+// Solidity: function MAX_CLIENT_COMPENSATION_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCaller) MAXCLIENTCOMPENSATIONBPS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "MAX_CLIENT_COMPENSATION_BPS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MAXCLIENTCOMPENSATIONBPS is a free data retrieval call binding the contract method 0x1fab58cc.
+//
+// Solidity: function MAX_CLIENT_COMPENSATION_BPS() view returns(uint256)
+func (_FileMarket *FileMarketSession) MAXCLIENTCOMPENSATIONBPS() (*big.Int, error) {
+	return _FileMarket.Contract.MAXCLIENTCOMPENSATIONBPS(&_FileMarket.CallOpts)
+}
+
+// MAXCLIENTCOMPENSATIONBPS is a free data retrieval call binding the contract method 0x1fab58cc.
+//
+// Solidity: function MAX_CLIENT_COMPENSATION_BPS() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) MAXCLIENTCOMPENSATIONBPS() (*big.Int, error) {
+	return _FileMarket.Contract.MAXCLIENTCOMPENSATIONBPS(&_FileMarket.CallOpts)
+}
+
 // MAXFORCEDEXITSPERSWEEP is a free data retrieval call binding the contract method 0xfa1e5094.
 //
 // Solidity: function MAX_FORCED_EXITS_PER_SWEEP() view returns(uint256)
@@ -246,6 +370,37 @@ func (_FileMarket *FileMarketSession) MAXFORCEDEXITSPERSWEEP() (*big.Int, error)
 // Solidity: function MAX_FORCED_EXITS_PER_SWEEP() view returns(uint256)
 func (_FileMarket *FileMarketCallerSession) MAXFORCEDEXITSPERSWEEP() (*big.Int, error) {
 	return _FileMarket.Contract.MAXFORCEDEXITSPERSWEEP(&_FileMarket.CallOpts)
+}
+
+// MAXPROOFFAILURESLASHMULTIPLIER is a free data retrieval call binding the contract method 0x15ddb6fe.
+//
+// Solidity: function MAX_PROOF_FAILURE_SLASH_MULTIPLIER() view returns(uint256)
+func (_FileMarket *FileMarketCaller) MAXPROOFFAILURESLASHMULTIPLIER(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "MAX_PROOF_FAILURE_SLASH_MULTIPLIER")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MAXPROOFFAILURESLASHMULTIPLIER is a free data retrieval call binding the contract method 0x15ddb6fe.
+//
+// Solidity: function MAX_PROOF_FAILURE_SLASH_MULTIPLIER() view returns(uint256)
+func (_FileMarket *FileMarketSession) MAXPROOFFAILURESLASHMULTIPLIER() (*big.Int, error) {
+	return _FileMarket.Contract.MAXPROOFFAILURESLASHMULTIPLIER(&_FileMarket.CallOpts)
+}
+
+// MAXPROOFFAILURESLASHMULTIPLIER is a free data retrieval call binding the contract method 0x15ddb6fe.
+//
+// Solidity: function MAX_PROOF_FAILURE_SLASH_MULTIPLIER() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) MAXPROOFFAILURESLASHMULTIPLIER() (*big.Int, error) {
+	return _FileMarket.Contract.MAXPROOFFAILURESLASHMULTIPLIER(&_FileMarket.CallOpts)
 }
 
 // MAXREPORTERREWARDBPS is a free data retrieval call binding the contract method 0x7f027a77.
@@ -310,6 +465,37 @@ func (_FileMarket *FileMarketCallerSession) MAXSWEEPPERCALL() (*big.Int, error) 
 	return _FileMarket.Contract.MAXSWEEPPERCALL(&_FileMarket.CallOpts)
 }
 
+// MINCHALLENGESLOTS is a free data retrieval call binding the contract method 0x9fc27649.
+//
+// Solidity: function MIN_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketCaller) MINCHALLENGESLOTS(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "MIN_CHALLENGE_SLOTS")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// MINCHALLENGESLOTS is a free data retrieval call binding the contract method 0x9fc27649.
+//
+// Solidity: function MIN_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketSession) MINCHALLENGESLOTS() (*big.Int, error) {
+	return _FileMarket.Contract.MINCHALLENGESLOTS(&_FileMarket.CallOpts)
+}
+
+// MINCHALLENGESLOTS is a free data retrieval call binding the contract method 0x9fc27649.
+//
+// Solidity: function MIN_CHALLENGE_SLOTS() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) MINCHALLENGESLOTS() (*big.Int, error) {
+	return _FileMarket.Contract.MINCHALLENGESLOTS(&_FileMarket.CallOpts)
+}
+
 // MINPROOFFAILURESLASH is a free data retrieval call binding the contract method 0xbab0096a.
 //
 // Solidity: function MIN_PROOF_FAILURE_SLASH() view returns(uint256)
@@ -341,35 +527,35 @@ func (_FileMarket *FileMarketCallerSession) MINPROOFFAILURESLASH() (*big.Int, er
 	return _FileMarket.Contract.MINPROOFFAILURESLASH(&_FileMarket.CallOpts)
 }
 
-// NUMCHALLENGESLOTS is a free data retrieval call binding the contract method 0xcdd19299.
+// UPGRADEINTERFACEVERSION is a free data retrieval call binding the contract method 0xad3cb1cc.
 //
-// Solidity: function NUM_CHALLENGE_SLOTS() view returns(uint256)
-func (_FileMarket *FileMarketCaller) NUMCHALLENGESLOTS(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function UPGRADE_INTERFACE_VERSION() view returns(string)
+func (_FileMarket *FileMarketCaller) UPGRADEINTERFACEVERSION(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
-	err := _FileMarket.contract.Call(opts, &out, "NUM_CHALLENGE_SLOTS")
+	err := _FileMarket.contract.Call(opts, &out, "UPGRADE_INTERFACE_VERSION")
 
 	if err != nil {
-		return *new(*big.Int), err
+		return *new(string), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
 
 	return out0, err
 
 }
 
-// NUMCHALLENGESLOTS is a free data retrieval call binding the contract method 0xcdd19299.
+// UPGRADEINTERFACEVERSION is a free data retrieval call binding the contract method 0xad3cb1cc.
 //
-// Solidity: function NUM_CHALLENGE_SLOTS() view returns(uint256)
-func (_FileMarket *FileMarketSession) NUMCHALLENGESLOTS() (*big.Int, error) {
-	return _FileMarket.Contract.NUMCHALLENGESLOTS(&_FileMarket.CallOpts)
+// Solidity: function UPGRADE_INTERFACE_VERSION() view returns(string)
+func (_FileMarket *FileMarketSession) UPGRADEINTERFACEVERSION() (string, error) {
+	return _FileMarket.Contract.UPGRADEINTERFACEVERSION(&_FileMarket.CallOpts)
 }
 
-// NUMCHALLENGESLOTS is a free data retrieval call binding the contract method 0xcdd19299.
+// UPGRADEINTERFACEVERSION is a free data retrieval call binding the contract method 0xad3cb1cc.
 //
-// Solidity: function NUM_CHALLENGE_SLOTS() view returns(uint256)
-func (_FileMarket *FileMarketCallerSession) NUMCHALLENGESLOTS() (*big.Int, error) {
-	return _FileMarket.Contract.NUMCHALLENGESLOTS(&_FileMarket.CallOpts)
+// Solidity: function UPGRADE_INTERFACE_VERSION() view returns(string)
+func (_FileMarket *FileMarketCallerSession) UPGRADEINTERFACEVERSION() (string, error) {
+	return _FileMarket.Contract.UPGRADEINTERFACEVERSION(&_FileMarket.CallOpts)
 }
 
 // ActiveOrders is a free data retrieval call binding the contract method 0xc2b5431f.
@@ -551,6 +737,37 @@ func (_FileMarket *FileMarketCallerSession) ChallengeSlotsInitialized() (bool, e
 	return _FileMarket.Contract.ChallengeSlotsInitialized(&_FileMarket.CallOpts)
 }
 
+// ChallengeStartBlock is a free data retrieval call binding the contract method 0x4df3830e.
+//
+// Solidity: function challengeStartBlock() view returns(uint256)
+func (_FileMarket *FileMarketCaller) ChallengeStartBlock(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "challengeStartBlock")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// ChallengeStartBlock is a free data retrieval call binding the contract method 0x4df3830e.
+//
+// Solidity: function challengeStartBlock() view returns(uint256)
+func (_FileMarket *FileMarketSession) ChallengeStartBlock() (*big.Int, error) {
+	return _FileMarket.Contract.ChallengeStartBlock(&_FileMarket.CallOpts)
+}
+
+// ChallengeStartBlock is a free data retrieval call binding the contract method 0x4df3830e.
+//
+// Solidity: function challengeStartBlock() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) ChallengeStartBlock() (*big.Int, error) {
+	return _FileMarket.Contract.ChallengeStartBlock(&_FileMarket.CallOpts)
+}
+
 // ChallengeableOrders is a free data retrieval call binding the contract method 0x47960aab.
 //
 // Solidity: function challengeableOrders(uint256 ) view returns(uint256)
@@ -611,6 +828,37 @@ func (_FileMarket *FileMarketSession) CleanupCursor() (*big.Int, error) {
 // Solidity: function cleanupCursor() view returns(uint256)
 func (_FileMarket *FileMarketCallerSession) CleanupCursor() (*big.Int, error) {
 	return _FileMarket.Contract.CleanupCursor(&_FileMarket.CallOpts)
+}
+
+// ClientCompensationBps is a free data retrieval call binding the contract method 0x2fae131e.
+//
+// Solidity: function clientCompensationBps() view returns(uint256)
+func (_FileMarket *FileMarketCaller) ClientCompensationBps(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "clientCompensationBps")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// ClientCompensationBps is a free data retrieval call binding the contract method 0x2fae131e.
+//
+// Solidity: function clientCompensationBps() view returns(uint256)
+func (_FileMarket *FileMarketSession) ClientCompensationBps() (*big.Int, error) {
+	return _FileMarket.Contract.ClientCompensationBps(&_FileMarket.CallOpts)
+}
+
+// ClientCompensationBps is a free data retrieval call binding the contract method 0x2fae131e.
+//
+// Solidity: function clientCompensationBps() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) ClientCompensationBps() (*big.Int, error) {
+	return _FileMarket.Contract.ClientCompensationBps(&_FileMarket.CallOpts)
 }
 
 // CurrentEpoch is a free data retrieval call binding the contract method 0x76671808.
@@ -706,6 +954,37 @@ func (_FileMarket *FileMarketCallerSession) FspVerifier() (common.Address, error
 	return _FileMarket.Contract.FspVerifier(&_FileMarket.CallOpts)
 }
 
+// GenesisTs is a free data retrieval call binding the contract method 0xe3af6d0a.
+//
+// Solidity: function genesisTs() view returns(uint256)
+func (_FileMarket *FileMarketCaller) GenesisTs(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "genesisTs")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GenesisTs is a free data retrieval call binding the contract method 0xe3af6d0a.
+//
+// Solidity: function genesisTs() view returns(uint256)
+func (_FileMarket *FileMarketSession) GenesisTs() (*big.Int, error) {
+	return _FileMarket.Contract.GenesisTs(&_FileMarket.CallOpts)
+}
+
+// GenesisTs is a free data retrieval call binding the contract method 0xe3af6d0a.
+//
+// Solidity: function genesisTs() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) GenesisTs() (*big.Int, error) {
+	return _FileMarket.Contract.GenesisTs(&_FileMarket.CallOpts)
+}
+
 // GetActiveOrders is a free data retrieval call binding the contract method 0x0086e68b.
 //
 // Solidity: function getActiveOrders() view returns(uint256[])
@@ -770,33 +1049,33 @@ func (_FileMarket *FileMarketCallerSession) GetActiveOrdersCount() (*big.Int, er
 
 // GetAllSlotInfo is a free data retrieval call binding the contract method 0xaa7cb178.
 //
-// Solidity: function getAllSlotInfo() view returns(uint256[5] orderIds, address[5] challengedNodes, uint256[5] randomnesses, uint256[5] deadlineBlocks, bool[5] isExpired)
+// Solidity: function getAllSlotInfo() view returns(uint256[] orderIds, address[] challengedNodes, uint256[] randomnesses, uint256[] deadlineBlocks, bool[] isExpired)
 func (_FileMarket *FileMarketCaller) GetAllSlotInfo(opts *bind.CallOpts) (struct {
-	OrderIds        [5]*big.Int
-	ChallengedNodes [5]common.Address
-	Randomnesses    [5]*big.Int
-	DeadlineBlocks  [5]*big.Int
-	IsExpired       [5]bool
+	OrderIds        []*big.Int
+	ChallengedNodes []common.Address
+	Randomnesses    []*big.Int
+	DeadlineBlocks  []*big.Int
+	IsExpired       []bool
 }, error) {
 	var out []interface{}
 	err := _FileMarket.contract.Call(opts, &out, "getAllSlotInfo")
 
 	outstruct := new(struct {
-		OrderIds        [5]*big.Int
-		ChallengedNodes [5]common.Address
-		Randomnesses    [5]*big.Int
-		DeadlineBlocks  [5]*big.Int
-		IsExpired       [5]bool
+		OrderIds        []*big.Int
+		ChallengedNodes []common.Address
+		Randomnesses    []*big.Int
+		DeadlineBlocks  []*big.Int
+		IsExpired       []bool
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
-	outstruct.OrderIds = *abi.ConvertType(out[0], new([5]*big.Int)).(*[5]*big.Int)
-	outstruct.ChallengedNodes = *abi.ConvertType(out[1], new([5]common.Address)).(*[5]common.Address)
-	outstruct.Randomnesses = *abi.ConvertType(out[2], new([5]*big.Int)).(*[5]*big.Int)
-	outstruct.DeadlineBlocks = *abi.ConvertType(out[3], new([5]*big.Int)).(*[5]*big.Int)
-	outstruct.IsExpired = *abi.ConvertType(out[4], new([5]bool)).(*[5]bool)
+	outstruct.OrderIds = *abi.ConvertType(out[0], new([]*big.Int)).(*[]*big.Int)
+	outstruct.ChallengedNodes = *abi.ConvertType(out[1], new([]common.Address)).(*[]common.Address)
+	outstruct.Randomnesses = *abi.ConvertType(out[2], new([]*big.Int)).(*[]*big.Int)
+	outstruct.DeadlineBlocks = *abi.ConvertType(out[3], new([]*big.Int)).(*[]*big.Int)
+	outstruct.IsExpired = *abi.ConvertType(out[4], new([]bool)).(*[]bool)
 
 	return *outstruct, err
 
@@ -804,26 +1083,26 @@ func (_FileMarket *FileMarketCaller) GetAllSlotInfo(opts *bind.CallOpts) (struct
 
 // GetAllSlotInfo is a free data retrieval call binding the contract method 0xaa7cb178.
 //
-// Solidity: function getAllSlotInfo() view returns(uint256[5] orderIds, address[5] challengedNodes, uint256[5] randomnesses, uint256[5] deadlineBlocks, bool[5] isExpired)
+// Solidity: function getAllSlotInfo() view returns(uint256[] orderIds, address[] challengedNodes, uint256[] randomnesses, uint256[] deadlineBlocks, bool[] isExpired)
 func (_FileMarket *FileMarketSession) GetAllSlotInfo() (struct {
-	OrderIds        [5]*big.Int
-	ChallengedNodes [5]common.Address
-	Randomnesses    [5]*big.Int
-	DeadlineBlocks  [5]*big.Int
-	IsExpired       [5]bool
+	OrderIds        []*big.Int
+	ChallengedNodes []common.Address
+	Randomnesses    []*big.Int
+	DeadlineBlocks  []*big.Int
+	IsExpired       []bool
 }, error) {
 	return _FileMarket.Contract.GetAllSlotInfo(&_FileMarket.CallOpts)
 }
 
 // GetAllSlotInfo is a free data retrieval call binding the contract method 0xaa7cb178.
 //
-// Solidity: function getAllSlotInfo() view returns(uint256[5] orderIds, address[5] challengedNodes, uint256[5] randomnesses, uint256[5] deadlineBlocks, bool[5] isExpired)
+// Solidity: function getAllSlotInfo() view returns(uint256[] orderIds, address[] challengedNodes, uint256[] randomnesses, uint256[] deadlineBlocks, bool[] isExpired)
 func (_FileMarket *FileMarketCallerSession) GetAllSlotInfo() (struct {
-	OrderIds        [5]*big.Int
-	ChallengedNodes [5]common.Address
-	Randomnesses    [5]*big.Int
-	DeadlineBlocks  [5]*big.Int
-	IsExpired       [5]bool
+	OrderIds        []*big.Int
+	ChallengedNodes []common.Address
+	Randomnesses    []*big.Int
+	DeadlineBlocks  []*big.Int
+	IsExpired       []bool
 }, error) {
 	return _FileMarket.Contract.GetAllSlotInfo(&_FileMarket.CallOpts)
 }
@@ -1432,7 +1711,7 @@ func (_FileMarket *FileMarketCallerSession) GetOrderNodes(_orderId *big.Int) ([]
 
 // GetProofSystemStats is a free data retrieval call binding the contract method 0xad38c6c0.
 //
-// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount)
+// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount, uint256 totalSlotsCount)
 func (_FileMarket *FileMarketCaller) GetProofSystemStats(opts *bind.CallOpts) (struct {
 	ActiveSlotsCount         *big.Int
 	IdleSlotsCount           *big.Int
@@ -1440,6 +1719,7 @@ func (_FileMarket *FileMarketCaller) GetProofSystemStats(opts *bind.CallOpts) (s
 	CurrentBlockNumber       *big.Int
 	ChallengeWindowBlocks    *big.Int
 	ChallengeableOrdersCount *big.Int
+	TotalSlotsCount          *big.Int
 }, error) {
 	var out []interface{}
 	err := _FileMarket.contract.Call(opts, &out, "getProofSystemStats")
@@ -1451,6 +1731,7 @@ func (_FileMarket *FileMarketCaller) GetProofSystemStats(opts *bind.CallOpts) (s
 		CurrentBlockNumber       *big.Int
 		ChallengeWindowBlocks    *big.Int
 		ChallengeableOrdersCount *big.Int
+		TotalSlotsCount          *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
@@ -1462,6 +1743,7 @@ func (_FileMarket *FileMarketCaller) GetProofSystemStats(opts *bind.CallOpts) (s
 	outstruct.CurrentBlockNumber = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
 	outstruct.ChallengeWindowBlocks = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
 	outstruct.ChallengeableOrdersCount = *abi.ConvertType(out[5], new(*big.Int)).(**big.Int)
+	outstruct.TotalSlotsCount = *abi.ConvertType(out[6], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
 
@@ -1469,7 +1751,7 @@ func (_FileMarket *FileMarketCaller) GetProofSystemStats(opts *bind.CallOpts) (s
 
 // GetProofSystemStats is a free data retrieval call binding the contract method 0xad38c6c0.
 //
-// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount)
+// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount, uint256 totalSlotsCount)
 func (_FileMarket *FileMarketSession) GetProofSystemStats() (struct {
 	ActiveSlotsCount         *big.Int
 	IdleSlotsCount           *big.Int
@@ -1477,13 +1759,14 @@ func (_FileMarket *FileMarketSession) GetProofSystemStats() (struct {
 	CurrentBlockNumber       *big.Int
 	ChallengeWindowBlocks    *big.Int
 	ChallengeableOrdersCount *big.Int
+	TotalSlotsCount          *big.Int
 }, error) {
 	return _FileMarket.Contract.GetProofSystemStats(&_FileMarket.CallOpts)
 }
 
 // GetProofSystemStats is a free data retrieval call binding the contract method 0xad38c6c0.
 //
-// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount)
+// Solidity: function getProofSystemStats() view returns(uint256 activeSlotsCount, uint256 idleSlotsCount, uint256 expiredSlotsCount, uint256 currentBlockNumber, uint256 challengeWindowBlocks, uint256 challengeableOrdersCount, uint256 totalSlotsCount)
 func (_FileMarket *FileMarketCallerSession) GetProofSystemStats() (struct {
 	ActiveSlotsCount         *big.Int
 	IdleSlotsCount           *big.Int
@@ -1491,6 +1774,7 @@ func (_FileMarket *FileMarketCallerSession) GetProofSystemStats() (struct {
 	CurrentBlockNumber       *big.Int
 	ChallengeWindowBlocks    *big.Int
 	ChallengeableOrdersCount *big.Int
+	TotalSlotsCount          *big.Int
 }, error) {
 	return _FileMarket.Contract.GetProofSystemStats(&_FileMarket.CallOpts)
 }
@@ -1622,21 +1906,23 @@ func (_FileMarket *FileMarketCallerSession) GetReporterEarningsInfo(_reporter co
 
 // GetSlashRedistributionStats is a free data retrieval call binding the contract method 0x87ca98a2.
 //
-// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps)
+// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps, uint256 totalClientComp)
 func (_FileMarket *FileMarketCaller) GetSlashRedistributionStats(opts *bind.CallOpts) (struct {
-	TotalReceived *big.Int
-	TotalBurned   *big.Int
-	TotalRewards  *big.Int
-	CurrentBps    *big.Int
+	TotalReceived   *big.Int
+	TotalBurned     *big.Int
+	TotalRewards    *big.Int
+	CurrentBps      *big.Int
+	TotalClientComp *big.Int
 }, error) {
 	var out []interface{}
 	err := _FileMarket.contract.Call(opts, &out, "getSlashRedistributionStats")
 
 	outstruct := new(struct {
-		TotalReceived *big.Int
-		TotalBurned   *big.Int
-		TotalRewards  *big.Int
-		CurrentBps    *big.Int
+		TotalReceived   *big.Int
+		TotalBurned     *big.Int
+		TotalRewards    *big.Int
+		CurrentBps      *big.Int
+		TotalClientComp *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
@@ -1646,6 +1932,7 @@ func (_FileMarket *FileMarketCaller) GetSlashRedistributionStats(opts *bind.Call
 	outstruct.TotalBurned = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
 	outstruct.TotalRewards = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
 	outstruct.CurrentBps = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.TotalClientComp = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
 
@@ -1653,24 +1940,26 @@ func (_FileMarket *FileMarketCaller) GetSlashRedistributionStats(opts *bind.Call
 
 // GetSlashRedistributionStats is a free data retrieval call binding the contract method 0x87ca98a2.
 //
-// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps)
+// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps, uint256 totalClientComp)
 func (_FileMarket *FileMarketSession) GetSlashRedistributionStats() (struct {
-	TotalReceived *big.Int
-	TotalBurned   *big.Int
-	TotalRewards  *big.Int
-	CurrentBps    *big.Int
+	TotalReceived   *big.Int
+	TotalBurned     *big.Int
+	TotalRewards    *big.Int
+	CurrentBps      *big.Int
+	TotalClientComp *big.Int
 }, error) {
 	return _FileMarket.Contract.GetSlashRedistributionStats(&_FileMarket.CallOpts)
 }
 
 // GetSlashRedistributionStats is a free data retrieval call binding the contract method 0x87ca98a2.
 //
-// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps)
+// Solidity: function getSlashRedistributionStats() view returns(uint256 totalReceived, uint256 totalBurned, uint256 totalRewards, uint256 currentBps, uint256 totalClientComp)
 func (_FileMarket *FileMarketCallerSession) GetSlashRedistributionStats() (struct {
-	TotalReceived *big.Int
-	TotalBurned   *big.Int
-	TotalRewards  *big.Int
-	CurrentBps    *big.Int
+	TotalReceived   *big.Int
+	TotalBurned     *big.Int
+	TotalRewards    *big.Int
+	CurrentBps      *big.Int
+	TotalClientComp *big.Int
 }, error) {
 	return _FileMarket.Contract.GetSlashRedistributionStats(&_FileMarket.CallOpts)
 }
@@ -2262,6 +2551,87 @@ func (_FileMarket *FileMarketCallerSession) NodeWithdrawn(arg0 common.Address) (
 	return _FileMarket.Contract.NodeWithdrawn(&_FileMarket.CallOpts, arg0)
 }
 
+// NumChallengeSlots is a free data retrieval call binding the contract method 0xf32b57d8.
+//
+// Solidity: function numChallengeSlots() view returns(uint256)
+func (_FileMarket *FileMarketCaller) NumChallengeSlots(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "numChallengeSlots")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// NumChallengeSlots is a free data retrieval call binding the contract method 0xf32b57d8.
+//
+// Solidity: function numChallengeSlots() view returns(uint256)
+func (_FileMarket *FileMarketSession) NumChallengeSlots() (*big.Int, error) {
+	return _FileMarket.Contract.NumChallengeSlots(&_FileMarket.CallOpts)
+}
+
+// NumChallengeSlots is a free data retrieval call binding the contract method 0xf32b57d8.
+//
+// Solidity: function numChallengeSlots() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) NumChallengeSlots() (*big.Int, error) {
+	return _FileMarket.Contract.NumChallengeSlots(&_FileMarket.CallOpts)
+}
+
+// OnDemandChallenges is a free data retrieval call binding the contract method 0xb802ad32.
+//
+// Solidity: function onDemandChallenges(bytes32 ) view returns(uint64 deadlineBlock, uint256 randomness, address challenger)
+func (_FileMarket *FileMarketCaller) OnDemandChallenges(opts *bind.CallOpts, arg0 [32]byte) (struct {
+	DeadlineBlock uint64
+	Randomness    *big.Int
+	Challenger    common.Address
+}, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "onDemandChallenges", arg0)
+
+	outstruct := new(struct {
+		DeadlineBlock uint64
+		Randomness    *big.Int
+		Challenger    common.Address
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.DeadlineBlock = *abi.ConvertType(out[0], new(uint64)).(*uint64)
+	outstruct.Randomness = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.Challenger = *abi.ConvertType(out[2], new(common.Address)).(*common.Address)
+
+	return *outstruct, err
+
+}
+
+// OnDemandChallenges is a free data retrieval call binding the contract method 0xb802ad32.
+//
+// Solidity: function onDemandChallenges(bytes32 ) view returns(uint64 deadlineBlock, uint256 randomness, address challenger)
+func (_FileMarket *FileMarketSession) OnDemandChallenges(arg0 [32]byte) (struct {
+	DeadlineBlock uint64
+	Randomness    *big.Int
+	Challenger    common.Address
+}, error) {
+	return _FileMarket.Contract.OnDemandChallenges(&_FileMarket.CallOpts, arg0)
+}
+
+// OnDemandChallenges is a free data retrieval call binding the contract method 0xb802ad32.
+//
+// Solidity: function onDemandChallenges(bytes32 ) view returns(uint64 deadlineBlock, uint256 randomness, address challenger)
+func (_FileMarket *FileMarketCallerSession) OnDemandChallenges(arg0 [32]byte) (struct {
+	DeadlineBlock uint64
+	Randomness    *big.Int
+	Challenger    common.Address
+}, error) {
+	return _FileMarket.Contract.OnDemandChallenges(&_FileMarket.CallOpts, arg0)
+}
+
 // OrderActiveChallengeCount is a free data retrieval call binding the contract method 0xa351e119.
 //
 // Solidity: function orderActiveChallengeCount(uint256 ) view returns(uint256)
@@ -2590,6 +2960,68 @@ func (_FileMarket *FileMarketCallerSession) PoiVerifier() (common.Address, error
 	return _FileMarket.Contract.PoiVerifier(&_FileMarket.CallOpts)
 }
 
+// ProofFailureSlashMultiplier is a free data retrieval call binding the contract method 0x65a5a216.
+//
+// Solidity: function proofFailureSlashMultiplier() view returns(uint256)
+func (_FileMarket *FileMarketCaller) ProofFailureSlashMultiplier(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "proofFailureSlashMultiplier")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// ProofFailureSlashMultiplier is a free data retrieval call binding the contract method 0x65a5a216.
+//
+// Solidity: function proofFailureSlashMultiplier() view returns(uint256)
+func (_FileMarket *FileMarketSession) ProofFailureSlashMultiplier() (*big.Int, error) {
+	return _FileMarket.Contract.ProofFailureSlashMultiplier(&_FileMarket.CallOpts)
+}
+
+// ProofFailureSlashMultiplier is a free data retrieval call binding the contract method 0x65a5a216.
+//
+// Solidity: function proofFailureSlashMultiplier() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) ProofFailureSlashMultiplier() (*big.Int, error) {
+	return _FileMarket.Contract.ProofFailureSlashMultiplier(&_FileMarket.CallOpts)
+}
+
+// ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
+//
+// Solidity: function proxiableUUID() view returns(bytes32)
+func (_FileMarket *FileMarketCaller) ProxiableUUID(opts *bind.CallOpts) ([32]byte, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "proxiableUUID")
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
+//
+// Solidity: function proxiableUUID() view returns(bytes32)
+func (_FileMarket *FileMarketSession) ProxiableUUID() ([32]byte, error) {
+	return _FileMarket.Contract.ProxiableUUID(&_FileMarket.CallOpts)
+}
+
+// ProxiableUUID is a free data retrieval call binding the contract method 0x52d1902d.
+//
+// Solidity: function proxiableUUID() view returns(bytes32)
+func (_FileMarket *FileMarketCallerSession) ProxiableUUID() ([32]byte, error) {
+	return _FileMarket.Contract.ProxiableUUID(&_FileMarket.CallOpts)
+}
+
 // ReporterEarnings is a free data retrieval call binding the contract method 0x258c58fa.
 //
 // Solidity: function reporterEarnings(address ) view returns(uint256)
@@ -2745,6 +3177,37 @@ func (_FileMarket *FileMarketCallerSession) SlashAuthorities(arg0 common.Address
 	return _FileMarket.Contract.SlashAuthorities(&_FileMarket.CallOpts, arg0)
 }
 
+// SweepCursor is a free data retrieval call binding the contract method 0xe3c5998f.
+//
+// Solidity: function sweepCursor() view returns(uint256)
+func (_FileMarket *FileMarketCaller) SweepCursor(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "sweepCursor")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// SweepCursor is a free data retrieval call binding the contract method 0xe3c5998f.
+//
+// Solidity: function sweepCursor() view returns(uint256)
+func (_FileMarket *FileMarketSession) SweepCursor() (*big.Int, error) {
+	return _FileMarket.Contract.SweepCursor(&_FileMarket.CallOpts)
+}
+
+// SweepCursor is a free data retrieval call binding the contract method 0xe3c5998f.
+//
+// Solidity: function sweepCursor() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) SweepCursor() (*big.Int, error) {
+	return _FileMarket.Contract.SweepCursor(&_FileMarket.CallOpts)
+}
+
 // TotalBurnedFromSlash is a free data retrieval call binding the contract method 0x319d785e.
 //
 // Solidity: function totalBurnedFromSlash() view returns(uint256)
@@ -2805,6 +3268,37 @@ func (_FileMarket *FileMarketSession) TotalCancellationPenalties() (*big.Int, er
 // Solidity: function totalCancellationPenalties() view returns(uint256)
 func (_FileMarket *FileMarketCallerSession) TotalCancellationPenalties() (*big.Int, error) {
 	return _FileMarket.Contract.TotalCancellationPenalties(&_FileMarket.CallOpts)
+}
+
+// TotalClientCompensation is a free data retrieval call binding the contract method 0xdf7a5c24.
+//
+// Solidity: function totalClientCompensation() view returns(uint256)
+func (_FileMarket *FileMarketCaller) TotalClientCompensation(opts *bind.CallOpts) (*big.Int, error) {
+	var out []interface{}
+	err := _FileMarket.contract.Call(opts, &out, "totalClientCompensation")
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// TotalClientCompensation is a free data retrieval call binding the contract method 0xdf7a5c24.
+//
+// Solidity: function totalClientCompensation() view returns(uint256)
+func (_FileMarket *FileMarketSession) TotalClientCompensation() (*big.Int, error) {
+	return _FileMarket.Contract.TotalClientCompensation(&_FileMarket.CallOpts)
+}
+
+// TotalClientCompensation is a free data retrieval call binding the contract method 0xdf7a5c24.
+//
+// Solidity: function totalClientCompensation() view returns(uint256)
+func (_FileMarket *FileMarketCallerSession) TotalClientCompensation() (*big.Int, error) {
+	return _FileMarket.Contract.TotalClientCompensation(&_FileMarket.CallOpts)
 }
 
 // TotalReporterRewards is a free data retrieval call binding the contract method 0xfa4596c9.
@@ -2911,6 +3405,27 @@ func (_FileMarket *FileMarketTransactorSession) CancelOrder(_orderId *big.Int) (
 	return _FileMarket.Contract.CancelOrder(&_FileMarket.TransactOpts, _orderId)
 }
 
+// ChallengeNode is a paid mutator transaction binding the contract method 0xabf8f87c.
+//
+// Solidity: function challengeNode(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketTransactor) ChallengeNode(opts *bind.TransactOpts, _orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "challengeNode", _orderId, _node)
+}
+
+// ChallengeNode is a paid mutator transaction binding the contract method 0xabf8f87c.
+//
+// Solidity: function challengeNode(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketSession) ChallengeNode(_orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.ChallengeNode(&_FileMarket.TransactOpts, _orderId, _node)
+}
+
+// ChallengeNode is a paid mutator transaction binding the contract method 0xabf8f87c.
+//
+// Solidity: function challengeNode(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketTransactorSession) ChallengeNode(_orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.ChallengeNode(&_FileMarket.TransactOpts, _orderId, _node)
+}
+
 // ClaimReporterRewards is a paid mutator transaction binding the contract method 0x1dd1924f.
 //
 // Solidity: function claimReporterRewards() returns()
@@ -2974,25 +3489,46 @@ func (_FileMarket *FileMarketTransactorSession) CompleteExpiredOrder(_orderId *b
 	return _FileMarket.Contract.CompleteExpiredOrder(&_FileMarket.TransactOpts, _orderId)
 }
 
-// ExecuteOrder is a paid mutator transaction binding the contract method 0x94f61134.
+// ExecuteOrder is a paid mutator transaction binding the contract method 0xdc9ad0e5.
 //
-// Solidity: function executeOrder(uint256 _orderId) returns()
-func (_FileMarket *FileMarketTransactor) ExecuteOrder(opts *bind.TransactOpts, _orderId *big.Int) (*types.Transaction, error) {
-	return _FileMarket.contract.Transact(opts, "executeOrder", _orderId)
+// Solidity: function executeOrder(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketTransactor) ExecuteOrder(opts *bind.TransactOpts, _orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "executeOrder", _orderId, _proof, _commitment)
 }
 
-// ExecuteOrder is a paid mutator transaction binding the contract method 0x94f61134.
+// ExecuteOrder is a paid mutator transaction binding the contract method 0xdc9ad0e5.
 //
-// Solidity: function executeOrder(uint256 _orderId) returns()
-func (_FileMarket *FileMarketSession) ExecuteOrder(_orderId *big.Int) (*types.Transaction, error) {
-	return _FileMarket.Contract.ExecuteOrder(&_FileMarket.TransactOpts, _orderId)
+// Solidity: function executeOrder(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketSession) ExecuteOrder(_orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.ExecuteOrder(&_FileMarket.TransactOpts, _orderId, _proof, _commitment)
 }
 
-// ExecuteOrder is a paid mutator transaction binding the contract method 0x94f61134.
+// ExecuteOrder is a paid mutator transaction binding the contract method 0xdc9ad0e5.
 //
-// Solidity: function executeOrder(uint256 _orderId) returns()
-func (_FileMarket *FileMarketTransactorSession) ExecuteOrder(_orderId *big.Int) (*types.Transaction, error) {
-	return _FileMarket.Contract.ExecuteOrder(&_FileMarket.TransactOpts, _orderId)
+// Solidity: function executeOrder(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketTransactorSession) ExecuteOrder(_orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.ExecuteOrder(&_FileMarket.TransactOpts, _orderId, _proof, _commitment)
+}
+
+// Initialize is a paid mutator transaction binding the contract method 0x1459457a.
+//
+// Solidity: function initialize(address _owner, address _nodeStaking, address _poiVerifier, address _fspVerifier, address _keyleakVerifier) returns()
+func (_FileMarket *FileMarketTransactor) Initialize(opts *bind.TransactOpts, _owner common.Address, _nodeStaking common.Address, _poiVerifier common.Address, _fspVerifier common.Address, _keyleakVerifier common.Address) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "initialize", _owner, _nodeStaking, _poiVerifier, _fspVerifier, _keyleakVerifier)
+}
+
+// Initialize is a paid mutator transaction binding the contract method 0x1459457a.
+//
+// Solidity: function initialize(address _owner, address _nodeStaking, address _poiVerifier, address _fspVerifier, address _keyleakVerifier) returns()
+func (_FileMarket *FileMarketSession) Initialize(_owner common.Address, _nodeStaking common.Address, _poiVerifier common.Address, _fspVerifier common.Address, _keyleakVerifier common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.Initialize(&_FileMarket.TransactOpts, _owner, _nodeStaking, _poiVerifier, _fspVerifier, _keyleakVerifier)
+}
+
+// Initialize is a paid mutator transaction binding the contract method 0x1459457a.
+//
+// Solidity: function initialize(address _owner, address _nodeStaking, address _poiVerifier, address _fspVerifier, address _keyleakVerifier) returns()
+func (_FileMarket *FileMarketTransactorSession) Initialize(_owner common.Address, _nodeStaking common.Address, _poiVerifier common.Address, _fspVerifier common.Address, _keyleakVerifier common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.Initialize(&_FileMarket.TransactOpts, _owner, _nodeStaking, _poiVerifier, _fspVerifier, _keyleakVerifier)
 }
 
 // PlaceOrder is a paid mutator transaction binding the contract method 0xb28b3a91.
@@ -3014,6 +3550,27 @@ func (_FileMarket *FileMarketSession) PlaceOrder(_file MarketStorageFileMeta, _n
 // Solidity: function placeOrder((uint256,string) _file, uint32 _numChunks, uint16 _periods, uint8 _replicas, uint256 _pricePerChunkPerPeriod, uint256[8] _fspProof) payable returns(uint256 orderId)
 func (_FileMarket *FileMarketTransactorSession) PlaceOrder(_file MarketStorageFileMeta, _numChunks uint32, _periods uint16, _replicas uint8, _pricePerChunkPerPeriod *big.Int, _fspProof [8]*big.Int) (*types.Transaction, error) {
 	return _FileMarket.Contract.PlaceOrder(&_FileMarket.TransactOpts, _file, _numChunks, _periods, _replicas, _pricePerChunkPerPeriod, _fspProof)
+}
+
+// ProcessExpiredOnDemandChallenge is a paid mutator transaction binding the contract method 0xac57aeb6.
+//
+// Solidity: function processExpiredOnDemandChallenge(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketTransactor) ProcessExpiredOnDemandChallenge(opts *bind.TransactOpts, _orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "processExpiredOnDemandChallenge", _orderId, _node)
+}
+
+// ProcessExpiredOnDemandChallenge is a paid mutator transaction binding the contract method 0xac57aeb6.
+//
+// Solidity: function processExpiredOnDemandChallenge(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketSession) ProcessExpiredOnDemandChallenge(_orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.ProcessExpiredOnDemandChallenge(&_FileMarket.TransactOpts, _orderId, _node)
+}
+
+// ProcessExpiredOnDemandChallenge is a paid mutator transaction binding the contract method 0xac57aeb6.
+//
+// Solidity: function processExpiredOnDemandChallenge(uint256 _orderId, address _node) returns()
+func (_FileMarket *FileMarketTransactorSession) ProcessExpiredOnDemandChallenge(_orderId *big.Int, _node common.Address) (*types.Transaction, error) {
+	return _FileMarket.Contract.ProcessExpiredOnDemandChallenge(&_FileMarket.TransactOpts, _orderId, _node)
 }
 
 // ProcessExpiredSlots is a paid mutator transaction binding the contract method 0xdbbbe766.
@@ -3079,6 +3636,69 @@ func (_FileMarket *FileMarketTransactorSession) ReportKeyLeak(_node common.Addre
 	return _FileMarket.Contract.ReportKeyLeak(&_FileMarket.TransactOpts, _node, _proof)
 }
 
+// SetChallengeStartBlock is a paid mutator transaction binding the contract method 0x9cf4aad2.
+//
+// Solidity: function setChallengeStartBlock(uint256 _block) returns()
+func (_FileMarket *FileMarketTransactor) SetChallengeStartBlock(opts *bind.TransactOpts, _block *big.Int) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "setChallengeStartBlock", _block)
+}
+
+// SetChallengeStartBlock is a paid mutator transaction binding the contract method 0x9cf4aad2.
+//
+// Solidity: function setChallengeStartBlock(uint256 _block) returns()
+func (_FileMarket *FileMarketSession) SetChallengeStartBlock(_block *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetChallengeStartBlock(&_FileMarket.TransactOpts, _block)
+}
+
+// SetChallengeStartBlock is a paid mutator transaction binding the contract method 0x9cf4aad2.
+//
+// Solidity: function setChallengeStartBlock(uint256 _block) returns()
+func (_FileMarket *FileMarketTransactorSession) SetChallengeStartBlock(_block *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetChallengeStartBlock(&_FileMarket.TransactOpts, _block)
+}
+
+// SetClientCompensationBps is a paid mutator transaction binding the contract method 0x4a1d3a24.
+//
+// Solidity: function setClientCompensationBps(uint256 _newBps) returns()
+func (_FileMarket *FileMarketTransactor) SetClientCompensationBps(opts *bind.TransactOpts, _newBps *big.Int) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "setClientCompensationBps", _newBps)
+}
+
+// SetClientCompensationBps is a paid mutator transaction binding the contract method 0x4a1d3a24.
+//
+// Solidity: function setClientCompensationBps(uint256 _newBps) returns()
+func (_FileMarket *FileMarketSession) SetClientCompensationBps(_newBps *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetClientCompensationBps(&_FileMarket.TransactOpts, _newBps)
+}
+
+// SetClientCompensationBps is a paid mutator transaction binding the contract method 0x4a1d3a24.
+//
+// Solidity: function setClientCompensationBps(uint256 _newBps) returns()
+func (_FileMarket *FileMarketTransactorSession) SetClientCompensationBps(_newBps *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetClientCompensationBps(&_FileMarket.TransactOpts, _newBps)
+}
+
+// SetProofFailureSlashMultiplier is a paid mutator transaction binding the contract method 0x62c10b17.
+//
+// Solidity: function setProofFailureSlashMultiplier(uint256 _newMultiplier) returns()
+func (_FileMarket *FileMarketTransactor) SetProofFailureSlashMultiplier(opts *bind.TransactOpts, _newMultiplier *big.Int) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "setProofFailureSlashMultiplier", _newMultiplier)
+}
+
+// SetProofFailureSlashMultiplier is a paid mutator transaction binding the contract method 0x62c10b17.
+//
+// Solidity: function setProofFailureSlashMultiplier(uint256 _newMultiplier) returns()
+func (_FileMarket *FileMarketSession) SetProofFailureSlashMultiplier(_newMultiplier *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetProofFailureSlashMultiplier(&_FileMarket.TransactOpts, _newMultiplier)
+}
+
+// SetProofFailureSlashMultiplier is a paid mutator transaction binding the contract method 0x62c10b17.
+//
+// Solidity: function setProofFailureSlashMultiplier(uint256 _newMultiplier) returns()
+func (_FileMarket *FileMarketTransactorSession) SetProofFailureSlashMultiplier(_newMultiplier *big.Int) (*types.Transaction, error) {
+	return _FileMarket.Contract.SetProofFailureSlashMultiplier(&_FileMarket.TransactOpts, _newMultiplier)
+}
+
 // SetReporterRewardBps is a paid mutator transaction binding the contract method 0x220c4e70.
 //
 // Solidity: function setReporterRewardBps(uint256 _newBps) returns()
@@ -3142,6 +3762,27 @@ func (_FileMarket *FileMarketTransactorSession) SlashNode(_node common.Address, 
 	return _FileMarket.Contract.SlashNode(&_FileMarket.TransactOpts, _node, _slashAmount, _reason)
 }
 
+// SubmitOnDemandProof is a paid mutator transaction binding the contract method 0x799fa2d7.
+//
+// Solidity: function submitOnDemandProof(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketTransactor) SubmitOnDemandProof(opts *bind.TransactOpts, _orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "submitOnDemandProof", _orderId, _proof, _commitment)
+}
+
+// SubmitOnDemandProof is a paid mutator transaction binding the contract method 0x799fa2d7.
+//
+// Solidity: function submitOnDemandProof(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketSession) SubmitOnDemandProof(_orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.SubmitOnDemandProof(&_FileMarket.TransactOpts, _orderId, _proof, _commitment)
+}
+
+// SubmitOnDemandProof is a paid mutator transaction binding the contract method 0x799fa2d7.
+//
+// Solidity: function submitOnDemandProof(uint256 _orderId, uint256[8] _proof, bytes32 _commitment) returns()
+func (_FileMarket *FileMarketTransactorSession) SubmitOnDemandProof(_orderId *big.Int, _proof [8]*big.Int, _commitment [32]byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.SubmitOnDemandProof(&_FileMarket.TransactOpts, _orderId, _proof, _commitment)
+}
+
 // SubmitProof is a paid mutator transaction binding the contract method 0x2d34494f.
 //
 // Solidity: function submitProof(uint256 _slotIndex, uint256[8] _proof, bytes32 _commitment) returns()
@@ -3182,6 +3823,27 @@ func (_FileMarket *FileMarketSession) TransferOwnership(_newOwner common.Address
 // Solidity: function transferOwnership(address _newOwner) returns()
 func (_FileMarket *FileMarketTransactorSession) TransferOwnership(_newOwner common.Address) (*types.Transaction, error) {
 	return _FileMarket.Contract.TransferOwnership(&_FileMarket.TransactOpts, _newOwner)
+}
+
+// UpgradeToAndCall is a paid mutator transaction binding the contract method 0x4f1ef286.
+//
+// Solidity: function upgradeToAndCall(address newImplementation, bytes data) payable returns()
+func (_FileMarket *FileMarketTransactor) UpgradeToAndCall(opts *bind.TransactOpts, newImplementation common.Address, data []byte) (*types.Transaction, error) {
+	return _FileMarket.contract.Transact(opts, "upgradeToAndCall", newImplementation, data)
+}
+
+// UpgradeToAndCall is a paid mutator transaction binding the contract method 0x4f1ef286.
+//
+// Solidity: function upgradeToAndCall(address newImplementation, bytes data) payable returns()
+func (_FileMarket *FileMarketSession) UpgradeToAndCall(newImplementation common.Address, data []byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.UpgradeToAndCall(&_FileMarket.TransactOpts, newImplementation, data)
+}
+
+// UpgradeToAndCall is a paid mutator transaction binding the contract method 0x4f1ef286.
+//
+// Solidity: function upgradeToAndCall(address newImplementation, bytes data) payable returns()
+func (_FileMarket *FileMarketTransactorSession) UpgradeToAndCall(newImplementation common.Address, data []byte) (*types.Transaction, error) {
+	return _FileMarket.Contract.UpgradeToAndCall(&_FileMarket.TransactOpts, newImplementation, data)
 }
 
 // WithdrawRefund is a paid mutator transaction binding the contract method 0x110f8874.
@@ -3366,6 +4028,422 @@ func (_FileMarket *FileMarketFilterer) WatchCancellationPenaltyDistributed(opts 
 func (_FileMarket *FileMarketFilterer) ParseCancellationPenaltyDistributed(log types.Log) (*FileMarketCancellationPenaltyDistributed, error) {
 	event := new(FileMarketCancellationPenaltyDistributed)
 	if err := _FileMarket.contract.UnpackLog(event, "CancellationPenaltyDistributed", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketChallengeSlotsScaledIterator is returned from FilterChallengeSlotsScaled and is used to iterate over the raw logs and unpacked data for ChallengeSlotsScaled events raised by the FileMarket contract.
+type FileMarketChallengeSlotsScaledIterator struct {
+	Event *FileMarketChallengeSlotsScaled // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketChallengeSlotsScaledIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketChallengeSlotsScaled)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketChallengeSlotsScaled)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketChallengeSlotsScaledIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketChallengeSlotsScaledIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketChallengeSlotsScaled represents a ChallengeSlotsScaled event raised by the FileMarket contract.
+type FileMarketChallengeSlotsScaled struct {
+	OldCount *big.Int
+	NewCount *big.Int
+	Raw      types.Log // Blockchain specific contextual infos
+}
+
+// FilterChallengeSlotsScaled is a free log retrieval operation binding the contract event 0x9914f1952e5a1f5b850acc0bb516eaf87ad1f31474736a2d93d5af41ec6ce6bf.
+//
+// Solidity: event ChallengeSlotsScaled(uint256 oldCount, uint256 newCount)
+func (_FileMarket *FileMarketFilterer) FilterChallengeSlotsScaled(opts *bind.FilterOpts) (*FileMarketChallengeSlotsScaledIterator, error) {
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "ChallengeSlotsScaled")
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketChallengeSlotsScaledIterator{contract: _FileMarket.contract, event: "ChallengeSlotsScaled", logs: logs, sub: sub}, nil
+}
+
+// WatchChallengeSlotsScaled is a free log subscription operation binding the contract event 0x9914f1952e5a1f5b850acc0bb516eaf87ad1f31474736a2d93d5af41ec6ce6bf.
+//
+// Solidity: event ChallengeSlotsScaled(uint256 oldCount, uint256 newCount)
+func (_FileMarket *FileMarketFilterer) WatchChallengeSlotsScaled(opts *bind.WatchOpts, sink chan<- *FileMarketChallengeSlotsScaled) (event.Subscription, error) {
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "ChallengeSlotsScaled")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketChallengeSlotsScaled)
+				if err := _FileMarket.contract.UnpackLog(event, "ChallengeSlotsScaled", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseChallengeSlotsScaled is a log parse operation binding the contract event 0x9914f1952e5a1f5b850acc0bb516eaf87ad1f31474736a2d93d5af41ec6ce6bf.
+//
+// Solidity: event ChallengeSlotsScaled(uint256 oldCount, uint256 newCount)
+func (_FileMarket *FileMarketFilterer) ParseChallengeSlotsScaled(log types.Log) (*FileMarketChallengeSlotsScaled, error) {
+	event := new(FileMarketChallengeSlotsScaled)
+	if err := _FileMarket.contract.UnpackLog(event, "ChallengeSlotsScaled", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketClientCompensationAccruedIterator is returned from FilterClientCompensationAccrued and is used to iterate over the raw logs and unpacked data for ClientCompensationAccrued events raised by the FileMarket contract.
+type FileMarketClientCompensationAccruedIterator struct {
+	Event *FileMarketClientCompensationAccrued // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketClientCompensationAccruedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketClientCompensationAccrued)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketClientCompensationAccrued)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketClientCompensationAccruedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketClientCompensationAccruedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketClientCompensationAccrued represents a ClientCompensationAccrued event raised by the FileMarket contract.
+type FileMarketClientCompensationAccrued struct {
+	Client  common.Address
+	Amount  *big.Int
+	OrderId *big.Int
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterClientCompensationAccrued is a free log retrieval operation binding the contract event 0x2d0475ca2e6724882218f8f67bb5587ba2f6b3e1618b800a78c8cf87028fc5c7.
+//
+// Solidity: event ClientCompensationAccrued(address indexed client, uint256 amount, uint256 orderId)
+func (_FileMarket *FileMarketFilterer) FilterClientCompensationAccrued(opts *bind.FilterOpts, client []common.Address) (*FileMarketClientCompensationAccruedIterator, error) {
+
+	var clientRule []interface{}
+	for _, clientItem := range client {
+		clientRule = append(clientRule, clientItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "ClientCompensationAccrued", clientRule)
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketClientCompensationAccruedIterator{contract: _FileMarket.contract, event: "ClientCompensationAccrued", logs: logs, sub: sub}, nil
+}
+
+// WatchClientCompensationAccrued is a free log subscription operation binding the contract event 0x2d0475ca2e6724882218f8f67bb5587ba2f6b3e1618b800a78c8cf87028fc5c7.
+//
+// Solidity: event ClientCompensationAccrued(address indexed client, uint256 amount, uint256 orderId)
+func (_FileMarket *FileMarketFilterer) WatchClientCompensationAccrued(opts *bind.WatchOpts, sink chan<- *FileMarketClientCompensationAccrued, client []common.Address) (event.Subscription, error) {
+
+	var clientRule []interface{}
+	for _, clientItem := range client {
+		clientRule = append(clientRule, clientItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "ClientCompensationAccrued", clientRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketClientCompensationAccrued)
+				if err := _FileMarket.contract.UnpackLog(event, "ClientCompensationAccrued", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseClientCompensationAccrued is a log parse operation binding the contract event 0x2d0475ca2e6724882218f8f67bb5587ba2f6b3e1618b800a78c8cf87028fc5c7.
+//
+// Solidity: event ClientCompensationAccrued(address indexed client, uint256 amount, uint256 orderId)
+func (_FileMarket *FileMarketFilterer) ParseClientCompensationAccrued(log types.Log) (*FileMarketClientCompensationAccrued, error) {
+	event := new(FileMarketClientCompensationAccrued)
+	if err := _FileMarket.contract.UnpackLog(event, "ClientCompensationAccrued", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketClientCompensationBpsUpdatedIterator is returned from FilterClientCompensationBpsUpdated and is used to iterate over the raw logs and unpacked data for ClientCompensationBpsUpdated events raised by the FileMarket contract.
+type FileMarketClientCompensationBpsUpdatedIterator struct {
+	Event *FileMarketClientCompensationBpsUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketClientCompensationBpsUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketClientCompensationBpsUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketClientCompensationBpsUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketClientCompensationBpsUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketClientCompensationBpsUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketClientCompensationBpsUpdated represents a ClientCompensationBpsUpdated event raised by the FileMarket contract.
+type FileMarketClientCompensationBpsUpdated struct {
+	OldBps *big.Int
+	NewBps *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterClientCompensationBpsUpdated is a free log retrieval operation binding the contract event 0x2c1965abc1a15203a0dd33a6f74e08e6a83bc49c98927be64355f2f3299f840f.
+//
+// Solidity: event ClientCompensationBpsUpdated(uint256 oldBps, uint256 newBps)
+func (_FileMarket *FileMarketFilterer) FilterClientCompensationBpsUpdated(opts *bind.FilterOpts) (*FileMarketClientCompensationBpsUpdatedIterator, error) {
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "ClientCompensationBpsUpdated")
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketClientCompensationBpsUpdatedIterator{contract: _FileMarket.contract, event: "ClientCompensationBpsUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchClientCompensationBpsUpdated is a free log subscription operation binding the contract event 0x2c1965abc1a15203a0dd33a6f74e08e6a83bc49c98927be64355f2f3299f840f.
+//
+// Solidity: event ClientCompensationBpsUpdated(uint256 oldBps, uint256 newBps)
+func (_FileMarket *FileMarketFilterer) WatchClientCompensationBpsUpdated(opts *bind.WatchOpts, sink chan<- *FileMarketClientCompensationBpsUpdated) (event.Subscription, error) {
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "ClientCompensationBpsUpdated")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketClientCompensationBpsUpdated)
+				if err := _FileMarket.contract.UnpackLog(event, "ClientCompensationBpsUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseClientCompensationBpsUpdated is a log parse operation binding the contract event 0x2c1965abc1a15203a0dd33a6f74e08e6a83bc49c98927be64355f2f3299f840f.
+//
+// Solidity: event ClientCompensationBpsUpdated(uint256 oldBps, uint256 newBps)
+func (_FileMarket *FileMarketFilterer) ParseClientCompensationBpsUpdated(log types.Log) (*FileMarketClientCompensationBpsUpdated, error) {
+	event := new(FileMarketClientCompensationBpsUpdated)
+	if err := _FileMarket.contract.UnpackLog(event, "ClientCompensationBpsUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -3657,6 +4735,140 @@ func (_FileMarket *FileMarketFilterer) WatchForcedOrderExits(opts *bind.WatchOpt
 func (_FileMarket *FileMarketFilterer) ParseForcedOrderExits(log types.Log) (*FileMarketForcedOrderExits, error) {
 	event := new(FileMarketForcedOrderExits)
 	if err := _FileMarket.contract.UnpackLog(event, "ForcedOrderExits", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the FileMarket contract.
+type FileMarketInitializedIterator struct {
+	Event *FileMarketInitialized // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketInitializedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketInitialized)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketInitialized)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketInitializedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketInitializedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketInitialized represents a Initialized event raised by the FileMarket contract.
+type FileMarketInitialized struct {
+	Version uint64
+	Raw     types.Log // Blockchain specific contextual infos
+}
+
+// FilterInitialized is a free log retrieval operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_FileMarket *FileMarketFilterer) FilterInitialized(opts *bind.FilterOpts) (*FileMarketInitializedIterator, error) {
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketInitializedIterator{contract: _FileMarket.contract, event: "Initialized", logs: logs, sub: sub}, nil
+}
+
+// WatchInitialized is a free log subscription operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_FileMarket *FileMarketFilterer) WatchInitialized(opts *bind.WatchOpts, sink chan<- *FileMarketInitialized) (event.Subscription, error) {
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "Initialized")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketInitialized)
+				if err := _FileMarket.contract.UnpackLog(event, "Initialized", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseInitialized is a log parse operation binding the contract event 0xc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d2.
+//
+// Solidity: event Initialized(uint64 version)
+func (_FileMarket *FileMarketFilterer) ParseInitialized(log types.Log) (*FileMarketInitialized, error) {
+	event := new(FileMarketInitialized)
+	if err := _FileMarket.contract.UnpackLog(event, "Initialized", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -4111,6 +5323,469 @@ func (_FileMarket *FileMarketFilterer) WatchNodeSlashed(opts *bind.WatchOpts, si
 func (_FileMarket *FileMarketFilterer) ParseNodeSlashed(log types.Log) (*FileMarketNodeSlashed, error) {
 	event := new(FileMarketNodeSlashed)
 	if err := _FileMarket.contract.UnpackLog(event, "NodeSlashed", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketOnDemandChallengeExpiredIterator is returned from FilterOnDemandChallengeExpired and is used to iterate over the raw logs and unpacked data for OnDemandChallengeExpired events raised by the FileMarket contract.
+type FileMarketOnDemandChallengeExpiredIterator struct {
+	Event *FileMarketOnDemandChallengeExpired // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketOnDemandChallengeExpiredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketOnDemandChallengeExpired)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketOnDemandChallengeExpired)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketOnDemandChallengeExpiredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketOnDemandChallengeExpiredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketOnDemandChallengeExpired represents a OnDemandChallengeExpired event raised by the FileMarket contract.
+type FileMarketOnDemandChallengeExpired struct {
+	OrderId     *big.Int
+	Node        common.Address
+	SlashAmount *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterOnDemandChallengeExpired is a free log retrieval operation binding the contract event 0x6621d07e53f9fb20fbbc721c265500a8fc8ee5fe77f1ec68857751916629c21d.
+//
+// Solidity: event OnDemandChallengeExpired(uint256 indexed orderId, address indexed node, uint256 slashAmount)
+func (_FileMarket *FileMarketFilterer) FilterOnDemandChallengeExpired(opts *bind.FilterOpts, orderId []*big.Int, node []common.Address) (*FileMarketOnDemandChallengeExpiredIterator, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "OnDemandChallengeExpired", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketOnDemandChallengeExpiredIterator{contract: _FileMarket.contract, event: "OnDemandChallengeExpired", logs: logs, sub: sub}, nil
+}
+
+// WatchOnDemandChallengeExpired is a free log subscription operation binding the contract event 0x6621d07e53f9fb20fbbc721c265500a8fc8ee5fe77f1ec68857751916629c21d.
+//
+// Solidity: event OnDemandChallengeExpired(uint256 indexed orderId, address indexed node, uint256 slashAmount)
+func (_FileMarket *FileMarketFilterer) WatchOnDemandChallengeExpired(opts *bind.WatchOpts, sink chan<- *FileMarketOnDemandChallengeExpired, orderId []*big.Int, node []common.Address) (event.Subscription, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "OnDemandChallengeExpired", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketOnDemandChallengeExpired)
+				if err := _FileMarket.contract.UnpackLog(event, "OnDemandChallengeExpired", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOnDemandChallengeExpired is a log parse operation binding the contract event 0x6621d07e53f9fb20fbbc721c265500a8fc8ee5fe77f1ec68857751916629c21d.
+//
+// Solidity: event OnDemandChallengeExpired(uint256 indexed orderId, address indexed node, uint256 slashAmount)
+func (_FileMarket *FileMarketFilterer) ParseOnDemandChallengeExpired(log types.Log) (*FileMarketOnDemandChallengeExpired, error) {
+	event := new(FileMarketOnDemandChallengeExpired)
+	if err := _FileMarket.contract.UnpackLog(event, "OnDemandChallengeExpired", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketOnDemandChallengeIssuedIterator is returned from FilterOnDemandChallengeIssued and is used to iterate over the raw logs and unpacked data for OnDemandChallengeIssued events raised by the FileMarket contract.
+type FileMarketOnDemandChallengeIssuedIterator struct {
+	Event *FileMarketOnDemandChallengeIssued // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketOnDemandChallengeIssuedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketOnDemandChallengeIssued)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketOnDemandChallengeIssued)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketOnDemandChallengeIssuedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketOnDemandChallengeIssuedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketOnDemandChallengeIssued represents a OnDemandChallengeIssued event raised by the FileMarket contract.
+type FileMarketOnDemandChallengeIssued struct {
+	OrderId       *big.Int
+	Node          common.Address
+	Challenger    common.Address
+	DeadlineBlock *big.Int
+	Raw           types.Log // Blockchain specific contextual infos
+}
+
+// FilterOnDemandChallengeIssued is a free log retrieval operation binding the contract event 0xf6bacafda998fd1622a9429a25dd847507ba1e556577a003510d743a400593f4.
+//
+// Solidity: event OnDemandChallengeIssued(uint256 indexed orderId, address indexed node, address challenger, uint256 deadlineBlock)
+func (_FileMarket *FileMarketFilterer) FilterOnDemandChallengeIssued(opts *bind.FilterOpts, orderId []*big.Int, node []common.Address) (*FileMarketOnDemandChallengeIssuedIterator, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "OnDemandChallengeIssued", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketOnDemandChallengeIssuedIterator{contract: _FileMarket.contract, event: "OnDemandChallengeIssued", logs: logs, sub: sub}, nil
+}
+
+// WatchOnDemandChallengeIssued is a free log subscription operation binding the contract event 0xf6bacafda998fd1622a9429a25dd847507ba1e556577a003510d743a400593f4.
+//
+// Solidity: event OnDemandChallengeIssued(uint256 indexed orderId, address indexed node, address challenger, uint256 deadlineBlock)
+func (_FileMarket *FileMarketFilterer) WatchOnDemandChallengeIssued(opts *bind.WatchOpts, sink chan<- *FileMarketOnDemandChallengeIssued, orderId []*big.Int, node []common.Address) (event.Subscription, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "OnDemandChallengeIssued", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketOnDemandChallengeIssued)
+				if err := _FileMarket.contract.UnpackLog(event, "OnDemandChallengeIssued", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOnDemandChallengeIssued is a log parse operation binding the contract event 0xf6bacafda998fd1622a9429a25dd847507ba1e556577a003510d743a400593f4.
+//
+// Solidity: event OnDemandChallengeIssued(uint256 indexed orderId, address indexed node, address challenger, uint256 deadlineBlock)
+func (_FileMarket *FileMarketFilterer) ParseOnDemandChallengeIssued(log types.Log) (*FileMarketOnDemandChallengeIssued, error) {
+	event := new(FileMarketOnDemandChallengeIssued)
+	if err := _FileMarket.contract.UnpackLog(event, "OnDemandChallengeIssued", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketOnDemandProofSubmittedIterator is returned from FilterOnDemandProofSubmitted and is used to iterate over the raw logs and unpacked data for OnDemandProofSubmitted events raised by the FileMarket contract.
+type FileMarketOnDemandProofSubmittedIterator struct {
+	Event *FileMarketOnDemandProofSubmitted // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketOnDemandProofSubmittedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketOnDemandProofSubmitted)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketOnDemandProofSubmitted)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketOnDemandProofSubmittedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketOnDemandProofSubmittedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketOnDemandProofSubmitted represents a OnDemandProofSubmitted event raised by the FileMarket contract.
+type FileMarketOnDemandProofSubmitted struct {
+	OrderId    *big.Int
+	Node       common.Address
+	Commitment [32]byte
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterOnDemandProofSubmitted is a free log retrieval operation binding the contract event 0x551d83d0a8c10f67a56904f6f0bf4e4fe79403fd791df322accceeb2675512f7.
+//
+// Solidity: event OnDemandProofSubmitted(uint256 indexed orderId, address indexed node, bytes32 commitment)
+func (_FileMarket *FileMarketFilterer) FilterOnDemandProofSubmitted(opts *bind.FilterOpts, orderId []*big.Int, node []common.Address) (*FileMarketOnDemandProofSubmittedIterator, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "OnDemandProofSubmitted", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketOnDemandProofSubmittedIterator{contract: _FileMarket.contract, event: "OnDemandProofSubmitted", logs: logs, sub: sub}, nil
+}
+
+// WatchOnDemandProofSubmitted is a free log subscription operation binding the contract event 0x551d83d0a8c10f67a56904f6f0bf4e4fe79403fd791df322accceeb2675512f7.
+//
+// Solidity: event OnDemandProofSubmitted(uint256 indexed orderId, address indexed node, bytes32 commitment)
+func (_FileMarket *FileMarketFilterer) WatchOnDemandProofSubmitted(opts *bind.WatchOpts, sink chan<- *FileMarketOnDemandProofSubmitted, orderId []*big.Int, node []common.Address) (event.Subscription, error) {
+
+	var orderIdRule []interface{}
+	for _, orderIdItem := range orderId {
+		orderIdRule = append(orderIdRule, orderIdItem)
+	}
+	var nodeRule []interface{}
+	for _, nodeItem := range node {
+		nodeRule = append(nodeRule, nodeItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "OnDemandProofSubmitted", orderIdRule, nodeRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketOnDemandProofSubmitted)
+				if err := _FileMarket.contract.UnpackLog(event, "OnDemandProofSubmitted", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOnDemandProofSubmitted is a log parse operation binding the contract event 0x551d83d0a8c10f67a56904f6f0bf4e4fe79403fd791df322accceeb2675512f7.
+//
+// Solidity: event OnDemandProofSubmitted(uint256 indexed orderId, address indexed node, bytes32 commitment)
+func (_FileMarket *FileMarketFilterer) ParseOnDemandProofSubmitted(log types.Log) (*FileMarketOnDemandProofSubmitted, error) {
+	event := new(FileMarketOnDemandProofSubmitted)
+	if err := _FileMarket.contract.UnpackLog(event, "OnDemandProofSubmitted", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -5008,6 +6683,141 @@ func (_FileMarket *FileMarketFilterer) WatchOwnershipTransferred(opts *bind.Watc
 func (_FileMarket *FileMarketFilterer) ParseOwnershipTransferred(log types.Log) (*FileMarketOwnershipTransferred, error) {
 	event := new(FileMarketOwnershipTransferred)
 	if err := _FileMarket.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketProofFailureSlashMultiplierUpdatedIterator is returned from FilterProofFailureSlashMultiplierUpdated and is used to iterate over the raw logs and unpacked data for ProofFailureSlashMultiplierUpdated events raised by the FileMarket contract.
+type FileMarketProofFailureSlashMultiplierUpdatedIterator struct {
+	Event *FileMarketProofFailureSlashMultiplierUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketProofFailureSlashMultiplierUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketProofFailureSlashMultiplierUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketProofFailureSlashMultiplierUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketProofFailureSlashMultiplierUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketProofFailureSlashMultiplierUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketProofFailureSlashMultiplierUpdated represents a ProofFailureSlashMultiplierUpdated event raised by the FileMarket contract.
+type FileMarketProofFailureSlashMultiplierUpdated struct {
+	OldMultiplier *big.Int
+	NewMultiplier *big.Int
+	Raw           types.Log // Blockchain specific contextual infos
+}
+
+// FilterProofFailureSlashMultiplierUpdated is a free log retrieval operation binding the contract event 0x700bd13236dc88e9575fd685afabfbd2527c01c5a7a7a133fdfa747cde90743c.
+//
+// Solidity: event ProofFailureSlashMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier)
+func (_FileMarket *FileMarketFilterer) FilterProofFailureSlashMultiplierUpdated(opts *bind.FilterOpts) (*FileMarketProofFailureSlashMultiplierUpdatedIterator, error) {
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "ProofFailureSlashMultiplierUpdated")
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketProofFailureSlashMultiplierUpdatedIterator{contract: _FileMarket.contract, event: "ProofFailureSlashMultiplierUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchProofFailureSlashMultiplierUpdated is a free log subscription operation binding the contract event 0x700bd13236dc88e9575fd685afabfbd2527c01c5a7a7a133fdfa747cde90743c.
+//
+// Solidity: event ProofFailureSlashMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier)
+func (_FileMarket *FileMarketFilterer) WatchProofFailureSlashMultiplierUpdated(opts *bind.WatchOpts, sink chan<- *FileMarketProofFailureSlashMultiplierUpdated) (event.Subscription, error) {
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "ProofFailureSlashMultiplierUpdated")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketProofFailureSlashMultiplierUpdated)
+				if err := _FileMarket.contract.UnpackLog(event, "ProofFailureSlashMultiplierUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseProofFailureSlashMultiplierUpdated is a log parse operation binding the contract event 0x700bd13236dc88e9575fd685afabfbd2527c01c5a7a7a133fdfa747cde90743c.
+//
+// Solidity: event ProofFailureSlashMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier)
+func (_FileMarket *FileMarketFilterer) ParseProofFailureSlashMultiplierUpdated(log types.Log) (*FileMarketProofFailureSlashMultiplierUpdated, error) {
+	event := new(FileMarketProofFailureSlashMultiplierUpdated)
+	if err := _FileMarket.contract.UnpackLog(event, "ProofFailureSlashMultiplierUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -6893,6 +8703,150 @@ func (_FileMarket *FileMarketFilterer) WatchSlotsActivated(opts *bind.WatchOpts,
 func (_FileMarket *FileMarketFilterer) ParseSlotsActivated(log types.Log) (*FileMarketSlotsActivated, error) {
 	event := new(FileMarketSlotsActivated)
 	if err := _FileMarket.contract.UnpackLog(event, "SlotsActivated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// FileMarketUpgradedIterator is returned from FilterUpgraded and is used to iterate over the raw logs and unpacked data for Upgraded events raised by the FileMarket contract.
+type FileMarketUpgradedIterator struct {
+	Event *FileMarketUpgraded // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *FileMarketUpgradedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(FileMarketUpgraded)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(FileMarketUpgraded)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *FileMarketUpgradedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *FileMarketUpgradedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// FileMarketUpgraded represents a Upgraded event raised by the FileMarket contract.
+type FileMarketUpgraded struct {
+	Implementation common.Address
+	Raw            types.Log // Blockchain specific contextual infos
+}
+
+// FilterUpgraded is a free log retrieval operation binding the contract event 0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b.
+//
+// Solidity: event Upgraded(address indexed implementation)
+func (_FileMarket *FileMarketFilterer) FilterUpgraded(opts *bind.FilterOpts, implementation []common.Address) (*FileMarketUpgradedIterator, error) {
+
+	var implementationRule []interface{}
+	for _, implementationItem := range implementation {
+		implementationRule = append(implementationRule, implementationItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.FilterLogs(opts, "Upgraded", implementationRule)
+	if err != nil {
+		return nil, err
+	}
+	return &FileMarketUpgradedIterator{contract: _FileMarket.contract, event: "Upgraded", logs: logs, sub: sub}, nil
+}
+
+// WatchUpgraded is a free log subscription operation binding the contract event 0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b.
+//
+// Solidity: event Upgraded(address indexed implementation)
+func (_FileMarket *FileMarketFilterer) WatchUpgraded(opts *bind.WatchOpts, sink chan<- *FileMarketUpgraded, implementation []common.Address) (event.Subscription, error) {
+
+	var implementationRule []interface{}
+	for _, implementationItem := range implementation {
+		implementationRule = append(implementationRule, implementationItem)
+	}
+
+	logs, sub, err := _FileMarket.contract.WatchLogs(opts, "Upgraded", implementationRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(FileMarketUpgraded)
+				if err := _FileMarket.contract.UnpackLog(event, "Upgraded", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseUpgraded is a log parse operation binding the contract event 0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b.
+//
+// Solidity: event Upgraded(address indexed implementation)
+func (_FileMarket *FileMarketFilterer) ParseUpgraded(log types.Log) (*FileMarketUpgraded, error) {
+	event := new(FileMarketUpgraded)
+	if err := _FileMarket.contract.UnpackLog(event, "Upgraded", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
