@@ -277,6 +277,10 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 // respondToChallenge fetches the file, generates a proof, and submits it on-chain.
 // Uses cached SMT when available to avoid rebuilding the Merkle tree.
 func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, randomness *big.Int) error {
+	if randomness == nil || randomness.Sign() == 0 {
+		return fmt.Errorf("slot %d: nil or zero randomness, cannot generate proof", slotIndex)
+	}
+
 	start := time.Now()
 
 	// 1. Get order details to find the file CID

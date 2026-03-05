@@ -115,14 +115,8 @@ func (el *EventListener) processChallengeEvents(
 			// Enrich with full slot data (includes randomness)
 			slot, err := el.client.GetSlotInfo(ctx, int(ev.SlotIndex.Int64()))
 			if err != nil {
-				log.Error().Err(err).Int64("slot", ev.SlotIndex.Int64()).Msg("failed to fetch slot info for event")
-				// Fall back to what we have from the event (no randomness)
-				slot = types.ChallengeSlotInfo{
-					Index:          int(ev.SlotIndex.Int64()),
-					OrderID:        ev.OrderId,
-					ChallengedNode: ev.ChallengedNode,
-					DeadlineBlock:  ev.DeadlineBlock,
-				}
+				log.Error().Err(err).Int64("slot", ev.SlotIndex.Int64()).Msg("failed to fetch slot info for event, skipping (will be caught by fallback poll)")
+				continue
 			}
 
 			select {
