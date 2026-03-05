@@ -217,11 +217,17 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 	return nil, fmt.Errorf("all %d attempts failed: %w", maxRetries, lastErr)
 }
 
+// receiptTimeout bounds how long waitForReceipt will poll for a pending tx
+// before giving up. Prevents a stuck/dropped tx from blocking a loop forever.
+const receiptTimeout = 2 * time.Minute
+
 // waitForReceipt polls for a transaction receipt, distinguishing
 // "not yet mined" (NotFound) from real RPC errors.
 func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	const maxErrors = 10
 	consecutiveErrors := 0
+
+	deadline := time.After(receiptTimeout)
 
 	for {
 		receipt, err := c.eth.TransactionReceipt(ctx, txHash)
@@ -229,12 +235,14 @@ func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types
 			return receipt, nil
 		}
 
-		// NotFound means tx is pending — keep waiting
+		// NotFound means tx is pending — keep waiting (up to timeout)
 		if errors.Is(err, ethereum.NotFound) {
 			consecutiveErrors = 0
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
+			case <-deadline:
+				return nil, fmt.Errorf("receipt timeout after %s: tx %s still pending", receiptTimeout, txHash.Hex())
 			case <-time.After(2 * time.Second):
 			}
 			continue
@@ -250,6 +258,8 @@ func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
+		case <-deadline:
+			return nil, fmt.Errorf("receipt timeout after %s: tx %s still pending", receiptTimeout, txHash.Hex())
 		case <-time.After(2 * time.Second):
 		}
 	}
