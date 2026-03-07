@@ -53,9 +53,13 @@ func (c *Client) GetNodeOrders(ctx context.Context) ([]*big.Int, error) {
 	return c.Market.GetNodeOrders(c.callOpts(ctx), c.addr)
 }
 
-// GetActiveOrders returns all active order IDs.
-func (c *Client) GetActiveOrders(ctx context.Context) ([]*big.Int, error) {
-	return c.Market.GetActiveOrders(c.callOpts(ctx))
+// GetActiveOrdersPage returns a page of active order IDs starting at offset.
+func (c *Client) GetActiveOrdersPage(ctx context.Context, offset, limit uint64) ([]*big.Int, uint64, error) {
+	result, err := c.Market.GetActiveOrdersPage(c.callOpts(ctx), new(big.Int).SetUint64(offset), new(big.Int).SetUint64(limit))
+	if err != nil {
+		return nil, 0, fmt.Errorf("getActiveOrdersPage(%d,%d): %w", offset, limit, err)
+	}
+	return result.OrderIds, result.Total.Uint64(), nil
 }
 
 // GetOrderDetails returns order details for the given order ID.
@@ -105,7 +109,6 @@ func (c *Client) GetGlobalStats(ctx context.Context) (struct {
 	TotalNodes               *big.Int
 	TotalCapacityStaked      *big.Int
 	TotalCapacityUsed        *big.Int
-	CurrentRandomnessValue   *big.Int
 	ActiveChallengeSlots     *big.Int
 	CurrentPeriod            *big.Int
 	CurrentBlock             *big.Int

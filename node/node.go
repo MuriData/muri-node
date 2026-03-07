@@ -445,107 +445,120 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		existing[oid.String()] = true
 	}
 
-	// Get active orders
-	activeOrders, err := n.chain.GetActiveOrders(ctx)
-	if err != nil {
-		return fmt.Errorf("get active orders: %w", err)
-	}
-
 	filled := 0
 	maxToFill := n.cfg.AutoExecute.MaxOrdersToFill
 	if maxToFill == 0 {
 		maxToFill = 5
 	}
 
-	for _, orderID := range activeOrders {
+	// Paginate through active orders
+	const pageSize uint64 = 50
+	var offset uint64
+	for {
+		page, total, err := n.chain.GetActiveOrdersPage(ctx, offset, pageSize)
+		if err != nil {
+			return fmt.Errorf("get active orders page(%d): %w", offset, err)
+		}
+
+			for _, orderID := range page {
+			if filled >= maxToFill {
+				break
+			}
+			if existing[orderID.String()] {
+				continue
+			}
+
+			order, err := n.chain.GetOrderDetails(ctx, orderID)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: can't get order details")
+				continue
+			}
+
+			// Check if order is full
+			if order.Filled >= order.Replicas {
+				continue
+			}
+
+			// Check capacity
+			if uint64(order.NumChunks) > availableCapacity {
+				continue
+			}
+
+			// Check price threshold (Price is populated by GetOrderDetails)
+			if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Uint64() < n.cfg.Storage.MinPrice {
+				continue
+			}
+
+			// Verify file integrity before committing
+			cid := extractCID(order.URI)
+			if cid == "" {
+				log.Warn().Str("orderID", orderID.String()).Str("uri", order.URI).Msg("skip: no CID in URI")
+				continue
+			}
+
+			fileData, err := n.ipfs.Cat(ctx, cid)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Str("cid", cid).Msg("skip: can't fetch file")
+				continue
+			}
+
+			// Build SMT and verify root matches on-chain
+			smt, chunks := n.prover.BuildSMT(fileData)
+			if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
+				log.Warn().
+					Str("orderID", orderID.String()).
+					Str("expected", fmt.Sprintf("0x%x", order.RootHash)).
+					Str("computed", fmt.Sprintf("0x%x", smt.Root)).
+					Msg("skip: root hash mismatch")
+				continue
+			}
+
+			// Generate PoI proof for execution (proves data possession)
+			publicKey := prover.PublicKeyFromSecret(n.secretKey)
+			randomness := deriveExecutionRandomness(order.RootHash, publicKey)
+			proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: proof generation failed")
+				continue
+			}
+
+			// Execute order on-chain with proof
+			receipt, err := n.chain.ExecuteOrder(ctx, orderID, proofResult.SolidityProof, proofResult.Commitment)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("execute order failed")
+				continue
+			}
+
+			// Pin file in IPFS
+			if n.cfg.IPFS.PinFiles {
+				if err := n.ipfs.Pin(ctx, cid); err != nil {
+					log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
+				}
+			}
+
+			// Cache Merkle tree for future challenge responses
+			if err := n.store.SaveTree(orderID, smt); err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("cache tree failed (non-fatal)")
+			}
+
+			availableCapacity -= uint64(order.NumChunks)
+			filled++
+
+			log.Info().
+				Str("orderID", orderID.String()).
+				Str("tx", receipt.TxHash.Hex()).
+				Uint32("chunks", order.NumChunks).
+				Msg("order claimed")
+		}
+
+		// Stop paginating if we've filled enough or reached the end
 		if filled >= maxToFill {
 			break
 		}
-		if existing[orderID.String()] {
-			continue
+		offset += pageSize
+		if offset >= total {
+			break
 		}
-
-		order, err := n.chain.GetOrderDetails(ctx, orderID)
-		if err != nil {
-			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: can't get order details")
-			continue
-		}
-
-		// Check if order is full
-		if order.Filled >= order.Replicas {
-			continue
-		}
-
-		// Check capacity
-		if uint64(order.NumChunks) > availableCapacity {
-			continue
-		}
-
-		// Check price threshold (Price is populated by GetOrderDetails)
-		if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Uint64() < n.cfg.Storage.MinPrice {
-			continue
-		}
-
-		// Verify file integrity before committing
-		cid := extractCID(order.URI)
-		if cid == "" {
-			log.Warn().Str("orderID", orderID.String()).Str("uri", order.URI).Msg("skip: no CID in URI")
-			continue
-		}
-
-		fileData, err := n.ipfs.Cat(ctx, cid)
-		if err != nil {
-			log.Warn().Err(err).Str("orderID", orderID.String()).Str("cid", cid).Msg("skip: can't fetch file")
-			continue
-		}
-
-		// Build SMT and verify root matches on-chain
-		smt, chunks := n.prover.BuildSMT(fileData)
-		if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
-			log.Warn().
-				Str("orderID", orderID.String()).
-				Str("expected", fmt.Sprintf("0x%x", order.RootHash)).
-				Str("computed", fmt.Sprintf("0x%x", smt.Root)).
-				Msg("skip: root hash mismatch")
-			continue
-		}
-
-		// Generate PoI proof for execution (proves data possession)
-		publicKey := prover.PublicKeyFromSecret(n.secretKey)
-		randomness := deriveExecutionRandomness(order.RootHash, publicKey)
-		proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
-		if err != nil {
-			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: proof generation failed")
-			continue
-		}
-
-		// Execute order on-chain with proof
-		receipt, err := n.chain.ExecuteOrder(ctx, orderID, proofResult.SolidityProof, proofResult.Commitment)
-		if err != nil {
-			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("execute order failed")
-			continue
-		}
-
-		// Pin file in IPFS
-		if n.cfg.IPFS.PinFiles {
-			if err := n.ipfs.Pin(ctx, cid); err != nil {
-				log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
-			}
-		}
-
-		// Cache Merkle tree for future challenge responses
-		if err := n.store.SaveTree(orderID, smt); err != nil {
-			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("cache tree failed (non-fatal)")
-		}
-
-		availableCapacity -= uint64(order.NumChunks)
-		filled++
-
-		log.Info().
-			Str("orderID", orderID.String()).
-			Str("tx", receipt.TxHash.Hex()).
-			Uint32("chunks", order.NumChunks).
-			Msg("order claimed")
 	}
 
 	return nil
