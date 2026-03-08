@@ -3,6 +3,9 @@ set -e
 
 CONFIG="${MURID_CONFIG:-/app/murid.toml}"
 
+# Ensure subdirectories exist (bind-mount may overlay Dockerfile-created dirs)
+mkdir -p /app/keys /app/data
+
 # Pass through to murid, injecting -config for commands that need it
 case "$1" in
     init)

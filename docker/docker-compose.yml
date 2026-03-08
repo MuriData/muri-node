@@ -55,6 +55,8 @@ services:
       - MURID_CHAIN_ID=44946
       - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
       - MURID_IPFS_URL=http://ipfs:5001
+      - MURID_KEYS_DIR=/app/keys
+      - MURID_DATA_DIR=/app/data
     restart: unless-stopped
 
 volumes:

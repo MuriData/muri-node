@@ -96,8 +96,8 @@ func runInit(args []string) {
 
 	// ── Node Identity ──
 	fmt.Println("── Node Identity ──")
-	keysDir := prompt("Keys directory", "./keys")
-	dataDir := prompt("Data directory", "./data")
+	keysDir := prompt("Keys directory", envDefault("MURID_KEYS_DIR", "./keys"))
+	dataDir := prompt("Data directory", envDefault("MURID_DATA_DIR", "./data"))
 
 	// EVM private key
 	privKeyPath := filepath.Join(keysDir, "node.key")
