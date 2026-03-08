@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/MuriData/muri-node/chain"
@@ -42,6 +43,34 @@ type Node struct {
 	prover    *prover.Prover
 	store     *storage.Store
 	secretKey *big.Int
+
+	// paused controls whether the order loop accepts new orders.
+	// Challenge responses continue regardless — pausing only stops new order intake.
+	paused atomic.Bool
+
+	// deregistered is set when on-chain checks detect the node is no longer valid.
+	// Stops both order and maintenance loops; challenge loop continues until context cancelled.
+	deregistered atomic.Bool
+
+	// prevOrders tracks known orders for cancellation/removal detection.
+	prevOrders map[string]bool
+}
+
+// Pause stops accepting new orders. Challenge responses continue.
+func (n *Node) Pause() {
+	n.paused.Store(true)
+	log.Warn().Msg("node PAUSED — no longer accepting new orders")
+}
+
+// Resume re-enables order acceptance.
+func (n *Node) Resume() {
+	n.paused.Store(false)
+	log.Info().Msg("node RESUMED — accepting orders again")
+}
+
+// IsPaused returns whether the node is paused.
+func (n *Node) IsPaused() bool {
+	return n.paused.Load()
 }
 
 // New initializes a node: loads keys, connects to chain/IPFS, initializes prover.
@@ -101,12 +130,13 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 	}
 
 	return &Node{
-		cfg:       cfg,
-		chain:     chainClient,
-		ipfs:      ipfsClient,
-		prover:    p,
-		store:     store,
-		secretKey: sk,
+		cfg:        cfg,
+		chain:      chainClient,
+		ipfs:       ipfsClient,
+		prover:     p,
+		store:      store,
+		secretKey:  sk,
+		prevOrders: make(map[string]bool),
 	}, nil
 }
 
@@ -114,9 +144,13 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 func (n *Node) Run(ctx context.Context) error {
 	log.Info().Msg("starting daemon loops")
 
-	errCh := make(chan error, 3)
+	// Start control socket for pause/resume commands
+	ctrlCleanup := n.startControlSocket(ctx)
+	defer ctrlCleanup()
 
-	// Challenge response loop (highest priority)
+	errCh := make(chan error, 4)
+
+	// Challenge response loop (highest priority — never paused)
 	go func() {
 		errCh <- n.challengeLoop(ctx)
 	}()
@@ -128,7 +162,7 @@ func (n *Node) Run(ctx context.Context) error {
 		}()
 	}
 
-	// Maintenance loop
+	// Maintenance + health monitoring loop
 	go func() {
 		errCh <- n.maintenanceLoop(ctx)
 	}()
@@ -408,6 +442,15 @@ func (n *Node) orderLoopEvents(ctx context.Context) error {
 
 // checkOrders finds and claims eligible orders.
 func (n *Node) checkOrders(ctx context.Context) error {
+	if n.paused.Load() {
+		log.Debug().Msg("order check skipped (paused)")
+		return nil
+	}
+	if n.deregistered.Load() {
+		log.Debug().Msg("order check skipped (deregistered)")
+		return nil
+	}
+
 	// Check node capacity
 	info, err := n.chain.GetNodeInfo(ctx)
 	if err != nil {
@@ -581,9 +624,17 @@ func (n *Node) maintenanceLoop(ctx context.Context) error {
 	}
 }
 
-// runMaintenance claims rewards, processes expired slots, activates idle slots.
-// Checks on-chain state before submitting transactions to avoid wasting gas.
+// runMaintenance claims rewards, processes expired slots, activates idle slots,
+// and monitors on-chain health (deregistration, slashing, order changes).
 func (n *Node) runMaintenance(ctx context.Context) {
+	// ── Health check: detect deregistration / slashing ──
+	n.checkNodeHealth(ctx)
+	n.detectOrderChanges(ctx)
+
+	if n.deregistered.Load() {
+		return
+	}
+
 	// Claim rewards if any are available
 	claimable, err := n.chain.GetClaimableRewards(ctx)
 	if err != nil {

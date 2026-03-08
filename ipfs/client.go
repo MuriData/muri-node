@@ -122,6 +122,28 @@ func (c *Client) Pin(ctx context.Context, cid string) error {
 	return nil
 }
 
+// Unpin removes a pin for a CID from the local IPFS node.
+func (c *Client) Unpin(ctx context.Context, cid string) error {
+	url := fmt.Sprintf("%s/api/v0/pin/rm?arg=%s", c.apiURL, cid)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("ipfs unpin: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("ipfs unpin %s: status %d: %s", cid, resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
 // IsPinned checks if a CID is pinned locally.
 func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
 	url := fmt.Sprintf("%s/api/v0/pin/ls?arg=%s", c.apiURL, cid)

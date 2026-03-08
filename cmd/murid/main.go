@@ -17,7 +17,12 @@ import (
 const usage = `Usage: murid <command> [flags]
 
 Commands:
+  init             Interactive setup — generate keys, write config
+  keygen           Generate a ZK secret key and derive its public key
+  status           Show node registration and on-chain status
   run              Start the storage provider daemon (default)
+  pause            Stop accepting new orders (daemon keeps responding to challenges)
+  resume           Resume accepting new orders
   download-keys    Download PoI prover/verifier keys from GitHub
 
 Flags:
@@ -33,8 +38,18 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "init":
+		runInit(os.Args[2:])
+	case "keygen":
+		runKeygen(os.Args[2:])
+	case "status":
+		runStatus(os.Args[2:])
 	case "run":
 		runDaemon(os.Args[2:])
+	case "pause":
+		runPause(os.Args[2:])
+	case "resume":
+		runResume(os.Args[2:])
 	case "download-keys":
 		runDownloadKeys(os.Args[2:])
 	case "-h", "--help", "help":
