@@ -19,6 +19,8 @@ ws_url = ""            # WebSocket URL (required if listen_mode = "events")
 api_url = "http://127.0.0.1:5001"
 timeout = "30s"
 pin_files = true
+max_retries = 4        # retry attempts for file fetch (exponential backoff)
+retry_delay = "2s"     # initial delay (doubles each retry: 2s, 4s, 8s, 16s)
 
 [node]
 private_key_path = "./keys/node.key"    # hex-encoded EVM private key

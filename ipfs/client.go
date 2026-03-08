@@ -25,8 +25,10 @@ func (c *Client) apiEndpoint(path, arg string) string {
 
 // Client is an HTTP client for the Kubo IPFS API.
 type Client struct {
-	apiURL string
-	http   *http.Client
+	apiURL     string
+	http       *http.Client
+	maxRetries int
+	baseDelay  time.Duration
 }
 
 // NewClient creates an IPFS client from config.
@@ -35,9 +37,19 @@ func NewClient(cfg config.IPFSConfig) *Client {
 	if timeout == 0 {
 		timeout = 30 * time.Second
 	}
+	maxRetries := cfg.MaxRetries
+	if maxRetries == 0 {
+		maxRetries = 4
+	}
+	baseDelay := cfg.RetryDelay.Duration
+	if baseDelay == 0 {
+		baseDelay = 2 * time.Second
+	}
 	return &Client{
-		apiURL: cfg.APIURL,
-		http:   &http.Client{Timeout: timeout},
+		apiURL:     cfg.APIURL,
+		http:       &http.Client{Timeout: timeout},
+		maxRetries: maxRetries,
+		baseDelay:  baseDelay,
 	}
 }
 
@@ -61,6 +73,34 @@ func (c *Client) Cat(ctx context.Context, cid string) ([]byte, error) {
 	}
 
 	return io.ReadAll(resp.Body)
+}
+
+// CatWithRetry fetches the raw bytes of a CID with exponential backoff retry.
+// Delays: baseDelay, baseDelay*2, baseDelay*4, ... up to maxRetries attempts.
+func (c *Client) CatWithRetry(ctx context.Context, cid string) ([]byte, error) {
+	var lastErr error
+	delay := c.baseDelay
+
+	for attempt := 0; attempt <= c.maxRetries; attempt++ {
+		data, err := c.Cat(ctx, cid)
+		if err == nil {
+			return data, nil
+		}
+		lastErr = err
+
+		if attempt == c.maxRetries {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(delay):
+		}
+		delay *= 2
+	}
+
+	return nil, fmt.Errorf("after %d retries: %w", c.maxRetries, lastErr)
 }
 
 // addResponse is the JSON response from /api/v0/add.

@@ -411,9 +411,9 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		return fmt.Errorf("no CID found in URI: %s", order.URI)
 	}
 
-	// 2. Fetch file from IPFS
+	// 2. Fetch file from IPFS (with exponential backoff retry)
 	fetchStart := time.Now()
-	fileData, err := n.ipfs.Cat(ctx, ref)
+	fileData, err := n.ipfs.CatWithRetry(ctx, ref)
 	if err != nil {
 		return fmt.Errorf("ipfs cat %s: %w", ref, err)
 	}
@@ -622,9 +622,9 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				continue
 			}
 
-			fileData, err := n.ipfs.Cat(ctx, ref)
+			fileData, err := n.ipfs.CatWithRetry(ctx, ref)
 			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file")
+				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file after retries")
 				continue
 			}
 

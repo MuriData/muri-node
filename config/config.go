@@ -38,9 +38,11 @@ type ChainConfig struct {
 
 // IPFSConfig holds IPFS Kubo API settings.
 type IPFSConfig struct {
-	APIURL   string        `toml:"api_url"`
-	Timeout  tomlDuration  `toml:"timeout"`
-	PinFiles bool          `toml:"pin_files"`
+	APIURL     string       `toml:"api_url"`
+	Timeout    tomlDuration `toml:"timeout"`
+	PinFiles   bool         `toml:"pin_files"`
+	MaxRetries int          `toml:"max_retries"`  // retry attempts for Cat (default 4)
+	RetryDelay tomlDuration `toml:"retry_delay"`  // initial backoff delay (default 2s, doubles each retry)
 }
 
 // NodeConfig holds node identity settings.
