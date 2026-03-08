@@ -1,16 +1,15 @@
 services:
   # ── Avalanche L1 RPC Node ──
+  # Host networking so avago P2P (9651) is directly reachable.
   avago:
     image: avaplatform/subnet-evm_avalanchego:v0.8.0-fuji_v1.14.0-fuji
+    network_mode: host
     volumes:
       - avago_data:/root/.avalanchego
       - ./avago/node.json:/root/.avalanchego/configs/node.json:ro
       - ./avago/chain-config.json:/root/.avalanchego/configs/chains/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/config.json:ro
     environment:
       - AVAGO_CONFIG_FILE=/root/.avalanchego/configs/node.json
-    ports:
-      - "9650:9650"       # HTTP API
-      - "9651:9651"       # staking / P2P
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9650/ext/health | grep -q '\"healthy\":true' || exit 1"]
       interval: 30s
@@ -20,13 +19,14 @@ services:
     restart: unless-stopped
 
   # ── IPFS (Kubo) ──
+  # Host networking for better DHT discoverability — peers connect directly
+  # without Docker NAT. Exposes ports 4001 (swarm), 5001 (API), 8080 (gateway).
   ipfs:
     image: ipfs/kubo:latest
+    network_mode: host
     volumes:
       - ipfs_data:/data/ipfs
-    ports:
-      - "4001:4001"       # swarm (peer connections)
-      - "8080:8080"       # gateway (optional, for browsing)
+      - ./ipfs/001-bind-localhost.sh:/container-init.d/001-bind-localhost.sh:ro
     environment:
       - IPFS_PROFILE=flatfs,server
     healthcheck:
@@ -42,6 +42,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    network_mode: host
     depends_on:
       avago:
         condition: service_healthy
@@ -51,10 +52,10 @@ services:
       - ./node:/app
     environment:
       # Defaults for "murid init" wizard (shown in [brackets] during prompts)
-      - MURID_RPC_URL=http://avago:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
+      - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
       - MURID_CHAIN_ID=44946
       - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
-      - MURID_IPFS_URL=http://ipfs:5001
+      - MURID_IPFS_URL=http://127.0.0.1:5001
       - MURID_KEYS_DIR=/app/keys
       - MURID_DATA_DIR=/app/data
     restart: unless-stopped

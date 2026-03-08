@@ -221,6 +221,30 @@ func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
 	return false, fmt.Errorf("ipfs pin ls %s: status %d: %s", cid, resp.StatusCode, string(body))
 }
 
+// Provide announces to the DHT that this node can provide the given CID.
+func (c *Client) Provide(ctx context.Context, cid string) error {
+	u := c.apiEndpoint("/api/v0/dht/provide", cid)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, nil)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("ipfs dht provide: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Kubo streams NDJSON progress; drain it and check for errors.
+	io.Copy(io.Discard, resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("ipfs dht provide %s: status %d", cid, resp.StatusCode)
+	}
+
+	return nil
+}
+
 // Ping checks connectivity to the IPFS node.
 func (c *Client) Ping(ctx context.Context) error {
 	url := c.apiEndpoint("/api/v0/id", "")

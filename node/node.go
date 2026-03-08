@@ -667,10 +667,13 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Pin root CID in IPFS (pins entire DAG even if order uses a subpath)
+			// then advertise as provider on the DHT so other peers can discover us
 			if n.cfg.IPFS.PinFiles {
 				rootCID := extractRootCID(order.URI)
 				if err := n.ipfs.Pin(ctx, rootCID); err != nil {
 					log.Warn().Err(err).Str("cid", rootCID).Msg("pin failed (non-fatal)")
+				} else if err := n.ipfs.Provide(ctx, rootCID); err != nil {
+					log.Warn().Err(err).Str("cid", rootCID).Msg("dht provide failed (non-fatal)")
 				}
 			}
 
