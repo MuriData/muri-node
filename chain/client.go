@@ -153,6 +153,8 @@ func (c *Client) transactOpts(ctx context.Context) (*bind.TransactOpts, error) {
 
 // SendTx sends a transaction with retry and gas escalation.
 // fn is called with TransactOpts and should return the transaction.
+// Retries reuse the same nonce so the replacement tx overwrites the stuck
+// original in the mempool instead of queuing behind it.
 func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types.Transaction, error)) (*types.Receipt, error) {
 	var lastErr error
 	maxRetries := c.cfg.MaxRetries
@@ -160,11 +162,18 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 		maxRetries = 1
 	}
 
+	// Pin the nonce on the first attempt so retries replace rather than enqueue.
+	nonce, err := c.eth.PendingNonceAt(ctx, c.addr)
+	if err != nil {
+		return nil, fmt.Errorf("get pending nonce: %w", err)
+	}
+
 	for attempt := 0; attempt < maxRetries; attempt++ {
 		opts, err := c.transactOpts(ctx)
 		if err != nil {
 			return nil, err
 		}
+		opts.Nonce = new(big.Int).SetUint64(nonce)
 
 		// Escalate gas on retries
 		if attempt > 0 {

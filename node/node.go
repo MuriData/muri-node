@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sort"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/MuriData/muri-node/ipfs"
 	"github.com/MuriData/muri-node/prover"
 	"github.com/MuriData/muri-node/storage"
+	"github.com/MuriData/muri-node/types"
 	"github.com/MuriData/muri-zkproof/circuits/poi"
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -53,7 +56,8 @@ type Node struct {
 	deregistered atomic.Bool
 
 	// prevOrders tracks known orders for cancellation/removal detection.
-	prevOrders map[string]bool
+	// Maps order ID string → root CID (for unpinning when the order disappears).
+	prevOrders map[string]string
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -129,6 +133,17 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 			Msg("node registered on-chain")
 	}
 
+	// Restore persisted order map (orderID → rootCID) for unpin tracking.
+	// If no persisted state, rebuild from on-chain data.
+	prevOrders, err := store.LoadOrderMap()
+	if err != nil {
+		log.Warn().Err(err).Msg("failed to load persisted order map, rebuilding from chain")
+		prevOrders = make(map[string]string)
+	}
+	if len(prevOrders) == 0 {
+		prevOrders = rebuildOrderMap(ctx, chainClient)
+	}
+
 	return &Node{
 		cfg:        cfg,
 		chain:      chainClient,
@@ -136,8 +151,34 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 		prover:     p,
 		store:      store,
 		secretKey:  sk,
-		prevOrders: make(map[string]bool),
+		prevOrders: prevOrders,
 	}, nil
+}
+
+// rebuildOrderMap fetches current orders from chain and builds the
+// orderID → rootCID mapping. Used on first run or when persisted state is lost.
+func rebuildOrderMap(ctx context.Context, c *chain.Client) map[string]string {
+	orders, err := c.GetNodeOrders(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("could not fetch node orders for order map rebuild")
+		return make(map[string]string)
+	}
+
+	m := make(map[string]string, len(orders))
+	for _, oid := range orders {
+		detail, err := c.GetOrderDetails(ctx, oid)
+		if err != nil {
+			log.Warn().Err(err).Str("orderID", oid.String()).Msg("could not fetch order details during rebuild")
+			m[oid.String()] = ""
+			continue
+		}
+		m[oid.String()] = extractRootCID(detail.URI)
+	}
+
+	if len(m) > 0 {
+		log.Info().Int("orders", len(m)).Msg("rebuilt order map from chain")
+	}
+	return m
 }
 
 // Run starts the daemon loops. Blocks until context is cancelled.
@@ -240,14 +281,11 @@ func (n *Node) challengeLoopEvents(ctx context.Context) error {
 			if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
 				continue
 			}
-			log.Info().
-				Int("slot", slot.Index).
-				Str("orderID", slot.OrderID.String()).
-				Msg("responding to challenge (event-triggered)")
-
-			if err := n.respondToChallenge(ctx, slot.Index, slot.OrderID, slot.Randomness); err != nil {
-				log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
-			}
+			// Dispatch through concurrent handler so events don't block each other.
+			blockNum, _ := n.chain.BlockNumber(ctx)
+			go func(s types.ChallengeSlotInfo) {
+				n.dispatchChallenges(ctx, []types.ChallengeSlotInfo{s}, blockNum)
+			}(slot)
 
 		case <-fallbackTicker.C:
 			if err := n.checkChallenges(ctx); err != nil {
@@ -257,7 +295,14 @@ func (n *Node) challengeLoopEvents(ctx context.Context) error {
 	}
 }
 
-// checkChallenges inspects all 5 slots and responds to any targeting this node.
+// challengeWorkers controls how many challenges are handled concurrently.
+// 2 provides a pipeline benefit (IPFS fetch for slot B overlaps with proof
+// generation for slot A) without overwhelming CPU, since the prover itself
+// is mutex-serialized.
+const challengeWorkers = 2
+
+// checkChallenges inspects all 5 slots, collects those targeting this node,
+// sorts by deadline (most urgent first), and dispatches them concurrently.
 func (n *Node) checkChallenges(ctx context.Context) error {
 	slots, err := n.chain.GetAllSlotInfo(ctx)
 	if err != nil {
@@ -270,6 +315,8 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 		return fmt.Errorf("get block number: %w", err)
 	}
 
+	// Collect slots that need a response.
+	var tasks []types.ChallengeSlotInfo
 	for _, slot := range slots {
 		if slot.ChallengedNode != myAddr {
 			continue
@@ -277,35 +324,71 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 		if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
 			continue
 		}
-
-		// Even if the view reports expired, attempt submission anyway — the on-chain
-		// submitProof sweeps expired slots first, and there may be a block boundary
-		// race where submission still succeeds. Let the contract be the arbiter.
-		if slot.IsExpired {
-			log.Warn().Int("slot", slot.Index).Msg("challenge appears expired, attempting proof anyway")
-		}
-
-		deadline := slot.DeadlineBlock.Uint64()
-		remaining := int64(deadline) - int64(blockNum)
-		if remaining <= int64(n.cfg.Challenge.SafetyMargin) && !slot.IsExpired {
-			log.Warn().
-				Int("slot", slot.Index).
-				Int64("blocksRemaining", remaining).
-				Msg("close to deadline, attempting anyway")
-		}
-
-		log.Info().
-			Int("slot", slot.Index).
-			Str("orderID", slot.OrderID.String()).
-			Int64("blocksRemaining", remaining).
-			Msg("responding to challenge")
-
-		if err := n.respondToChallenge(ctx, slot.Index, slot.OrderID, slot.Randomness); err != nil {
-			log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
-		}
+		tasks = append(tasks, slot)
 	}
 
+	if len(tasks) == 0 {
+		return nil
+	}
+
+	// Sort by deadline — most urgent (lowest block) first.
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].DeadlineBlock.Cmp(tasks[j].DeadlineBlock) < 0
+	})
+
+	n.dispatchChallenges(ctx, tasks, blockNum)
 	return nil
+}
+
+// dispatchChallenges runs challenge responses concurrently through a bounded
+// worker pool, ordered by deadline urgency.
+func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSlotInfo, blockNum uint64) {
+	taskCh := make(chan types.ChallengeSlotInfo, len(tasks))
+	for _, t := range tasks {
+		taskCh <- t
+	}
+	close(taskCh)
+
+	workers := challengeWorkers
+	if len(tasks) < workers {
+		workers = len(tasks)
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			for slot := range taskCh {
+				if ctx.Err() != nil {
+					return
+				}
+
+				deadline := slot.DeadlineBlock.Uint64()
+				remaining := int64(deadline) - int64(blockNum)
+
+				if slot.IsExpired {
+					log.Warn().Int("slot", slot.Index).Msg("challenge appears expired, attempting proof anyway")
+				} else if remaining <= int64(n.cfg.Challenge.SafetyMargin) {
+					log.Warn().
+						Int("slot", slot.Index).
+						Int64("blocksRemaining", remaining).
+						Msg("close to deadline, attempting anyway")
+				}
+
+				log.Info().
+					Int("slot", slot.Index).
+					Str("orderID", slot.OrderID.String()).
+					Int64("blocksRemaining", remaining).
+					Msg("responding to challenge")
+
+				if err := n.respondToChallenge(ctx, slot.Index, slot.OrderID, slot.Randomness); err != nil {
+					log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
+				}
+			}
+		}()
+	}
+	wg.Wait()
 }
 
 // respondToChallenge fetches the file, generates a proof, and submits it on-chain.

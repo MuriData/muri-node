@@ -2,7 +2,6 @@ package node
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/rs/zerolog/log"
 )
@@ -55,6 +54,9 @@ func (n *Node) checkNodeHealth(ctx context.Context) {
 // detectOrderChanges compares current on-chain orders against the previous
 // snapshot to detect cancellations and removals. Tree cache cleanup is
 // handled by the existing pruneStaleCache in the same maintenance cycle.
+//
+// prevOrders maps orderID → rootCID so we can unpin even after the order
+// has been purged from chain state.
 func (n *Node) detectOrderChanges(ctx context.Context) {
 	orders, err := n.chain.GetNodeOrders(ctx)
 	if err != nil {
@@ -62,52 +64,60 @@ func (n *Node) detectOrderChanges(ctx context.Context) {
 		return
 	}
 
-	currentSet := make(map[string]bool, len(orders))
+	// Build current snapshot: orderID → rootCID.
+	// Fetch details for any order we haven't seen before so we capture its CID
+	// while the chain still has the data.
+	currentSet := make(map[string]string, len(orders))
 	for _, oid := range orders {
-		currentSet[oid.String()] = true
+		key := oid.String()
+		if cid, ok := n.prevOrders[key]; ok {
+			// Carry forward the CID we already know.
+			currentSet[key] = cid
+		} else {
+			// New order — fetch its CID now while it's still on-chain.
+			order, err := n.chain.GetOrderDetails(ctx, oid)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", key).Msg("health: failed to fetch new order details")
+				currentSet[key] = "" // track the order even without CID
+			} else {
+				currentSet[key] = extractRootCID(order.URI)
+			}
+			log.Info().Str("orderID", key).Msg("health: new order detected in active set")
+		}
 	}
 
-	// First run: initialize snapshot without alerting
+	// First run: initialize snapshot without alerting about removals.
 	if len(n.prevOrders) == 0 && len(orders) > 0 {
 		n.prevOrders = currentSet
+		if err := n.store.SaveOrderMap(currentSet); err != nil {
+			log.Warn().Err(err).Msg("health: failed to persist initial order map")
+		}
 		return
 	}
 
-	// Detect removed orders (were in prev, not in current)
-	for oid := range n.prevOrders {
-		if currentSet[oid] {
+	// Detect removed orders (were in prev, not in current) and unpin using
+	// the CID we stored when the order was first seen.
+	for oid, rootCID := range n.prevOrders {
+		if _, ok := currentSet[oid]; ok {
 			continue
 		}
 
 		log.Warn().Str("orderID", oid).Msg("health: order removed (cancelled, completed, or force-exited)")
 
-		// Try to unpin from IPFS if we can still read the order details
-		orderID, ok := new(big.Int).SetString(oid, 10)
-		if !ok {
+		if rootCID == "" {
 			continue
 		}
-		order, err := n.chain.GetOrderDetails(ctx, orderID)
-		if err != nil {
-			log.Debug().Err(err).Str("orderID", oid).Msg("health: could not fetch removed order details (already purged)")
-			continue
+		if err := n.ipfs.Unpin(ctx, rootCID); err != nil {
+			log.Debug().Err(err).Str("cid", rootCID).Msg("health: unpin failed (may already be unpinned)")
+		} else {
+			log.Info().Str("cid", rootCID).Str("orderID", oid).Msg("health: unpinned file for removed order")
 		}
-		rootCID := extractRootCID(order.URI)
-		if rootCID != "" {
-			if err := n.ipfs.Unpin(ctx, rootCID); err != nil {
-				log.Debug().Err(err).Str("cid", rootCID).Msg("health: unpin failed (may already be unpinned)")
-			} else {
-				log.Info().Str("cid", rootCID).Str("orderID", oid).Msg("health: unpinned file for removed order")
-			}
-		}
-	}
-
-	// Detect new orders we didn't execute ourselves
-	for oid := range currentSet {
-		if n.prevOrders[oid] {
-			continue
-		}
-		log.Info().Str("orderID", oid).Msg("health: new order detected in active set")
 	}
 
 	n.prevOrders = currentSet
+
+	// Persist to disk so restarts don't lose CID mappings.
+	if err := n.store.SaveOrderMap(currentSet); err != nil {
+		log.Warn().Err(err).Msg("health: failed to persist order map")
+	}
 }

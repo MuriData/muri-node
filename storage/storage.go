@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -141,4 +142,35 @@ func LoadPrivateKey(path string) (string, error) {
 	// Strip 0x prefix if present
 	key = strings.TrimPrefix(key, "0x")
 	return key, nil
+}
+
+// orderMapPath returns the file path for the persisted order map.
+func (s *Store) orderMapPath() string {
+	return filepath.Join(s.dataDir, "orders.json")
+}
+
+// SaveOrderMap persists the order-ID → root-CID mapping to disk.
+func (s *Store) SaveOrderMap(orders map[string]string) error {
+	data, err := json.Marshal(orders)
+	if err != nil {
+		return fmt.Errorf("marshal order map: %w", err)
+	}
+	return os.WriteFile(s.orderMapPath(), data, 0o644)
+}
+
+// LoadOrderMap reads the persisted order-ID → root-CID mapping.
+// Returns an empty map (not an error) if the file does not exist.
+func (s *Store) LoadOrderMap() (map[string]string, error) {
+	data, err := os.ReadFile(s.orderMapPath())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return make(map[string]string), nil
+		}
+		return nil, fmt.Errorf("read order map: %w", err)
+	}
+	m := make(map[string]string)
+	if err := json.Unmarshal(data, &m); err != nil {
+		return nil, fmt.Errorf("unmarshal order map: %w", err)
+	}
+	return m, nil
 }

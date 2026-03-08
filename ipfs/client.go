@@ -8,10 +8,20 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/MuriData/muri-node/config"
 )
+
+// apiURL builds a fully-escaped Kubo API URL with the given path and arg.
+func (c *Client) apiEndpoint(path, arg string) string {
+	u := fmt.Sprintf("%s%s", c.apiURL, path)
+	if arg != "" {
+		u += "?" + url.Values{"arg": {arg}}.Encode()
+	}
+	return u
+}
 
 // Client is an HTTP client for the Kubo IPFS API.
 type Client struct {
@@ -33,7 +43,7 @@ func NewClient(cfg config.IPFSConfig) *Client {
 
 // Cat fetches the raw bytes of a CID from IPFS.
 func (c *Client) Cat(ctx context.Context, cid string) ([]byte, error) {
-	url := fmt.Sprintf("%s/api/v0/cat?arg=%s", c.apiURL, cid)
+	url := c.apiEndpoint("/api/v0/cat", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
@@ -74,7 +84,7 @@ func (c *Client) Add(ctx context.Context, data []byte, filename string) (string,
 	}
 	writer.Close()
 
-	url := fmt.Sprintf("%s/api/v0/add", c.apiURL)
+	url := c.apiEndpoint("/api/v0/add", "")
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
@@ -102,7 +112,7 @@ func (c *Client) Add(ctx context.Context, data []byte, filename string) (string,
 
 // Pin pins a CID to the local IPFS node.
 func (c *Client) Pin(ctx context.Context, cid string) error {
-	url := fmt.Sprintf("%s/api/v0/pin/add?arg=%s", c.apiURL, cid)
+	url := c.apiEndpoint("/api/v0/pin/add", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
@@ -124,7 +134,7 @@ func (c *Client) Pin(ctx context.Context, cid string) error {
 
 // Unpin removes a pin for a CID from the local IPFS node.
 func (c *Client) Unpin(ctx context.Context, cid string) error {
-	url := fmt.Sprintf("%s/api/v0/pin/rm?arg=%s", c.apiURL, cid)
+	url := c.apiEndpoint("/api/v0/pin/rm", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
@@ -146,7 +156,7 @@ func (c *Client) Unpin(ctx context.Context, cid string) error {
 
 // IsPinned checks if a CID is pinned locally.
 func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
-	url := fmt.Sprintf("%s/api/v0/pin/ls?arg=%s", c.apiURL, cid)
+	url := c.apiEndpoint("/api/v0/pin/ls", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return false, fmt.Errorf("create request: %w", err)
@@ -173,7 +183,7 @@ func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
 
 // Ping checks connectivity to the IPFS node.
 func (c *Client) Ping(ctx context.Context) error {
-	url := fmt.Sprintf("%s/api/v0/id", c.apiURL)
+	url := c.apiEndpoint("/api/v0/id", "")
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
