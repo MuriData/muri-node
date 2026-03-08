@@ -1,4 +1,5 @@
 {
+  "min-delay-target": 10000,
   "pruning-enabled": true,
   "metrics-expensive-enabled": false,
   "state-sync-enabled": true,
