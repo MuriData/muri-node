@@ -121,7 +121,7 @@ func Load(path string) (*Config, error) {
 func DefaultConfig() *Config {
 	return &Config{
 		Chain: ChainConfig{
-			GasLimit:           500_000,
+			GasLimit:           2_000_000,
 			MaxGasPrice:        100,
 			GasPriority:        2,
 			GasEscalation:      1.25,

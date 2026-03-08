@@ -234,7 +234,7 @@ func buildTOML(p tomlParams) string {
 	fmt.Fprintf(&b, "chain_id = %d\n", p.chainID)
 	fmt.Fprintf(&b, "market_address = %q\n", p.marketAddr)
 	b.WriteString("staking_address = \"\"   # auto-resolved from market contract\n")
-	b.WriteString("gas_limit = 500000\n")
+	b.WriteString("gas_limit = 2000000\n")
 	b.WriteString("max_gas_price = 100\n")
 	b.WriteString("gas_priority = 2\n")
 	b.WriteString("gas_escalation = 1.25\n")

@@ -586,8 +586,15 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("get active orders page(%d): %w", offset, err)
 		}
+		if offset == 0 {
+			log.Info().
+				Uint64("activeOrders", total).
+				Int("existingNodeOrders", len(existing)).
+				Uint64("availableCapacity", availableCapacity).
+				Msg("scanning orders")
+		}
 
-			for _, orderID := range page {
+		for _, orderID := range page {
 			if filled >= maxToFill {
 				break
 			}
@@ -603,16 +610,19 @@ func (n *Node) checkOrders(ctx context.Context) error {
 
 			// Check if order is full
 			if order.Filled >= order.Replicas {
+				log.Debug().Str("orderID", orderID.String()).Uint8("filled", order.Filled).Uint8("replicas", order.Replicas).Msg("skip: order full")
 				continue
 			}
 
 			// Check capacity
 			if uint64(order.NumChunks) > availableCapacity {
+				log.Debug().Str("orderID", orderID.String()).Uint64("chunks", uint64(order.NumChunks)).Uint64("available", availableCapacity).Msg("skip: insufficient capacity")
 				continue
 			}
 
 			// Check price threshold (Price is populated by GetOrderDetails)
 			if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Cmp(new(big.Int).SetUint64(n.cfg.Storage.MinPrice)) < 0 {
+				log.Debug().Str("orderID", orderID.String()).Str("price", order.Price.String()).Uint64("minPrice", n.cfg.Storage.MinPrice).Msg("skip: price below threshold")
 				continue
 			}
 
@@ -698,6 +708,9 @@ func (n *Node) maintenanceLoop(ctx context.Context) error {
 	defer ticker.Stop()
 
 	log.Info().Msg("maintenance loop started")
+
+	// Run immediately on startup (activate slots, claim rewards, etc.)
+	n.runMaintenance(ctx)
 
 	for {
 		select {

@@ -8,6 +8,8 @@ import (
 	"math/big"
 	"time"
 
+	"encoding/hex"
+
 	"github.com/MuriData/muri-node/chain/bindings"
 	"github.com/MuriData/muri-node/config"
 	"github.com/ethereum/go-ethereum"
@@ -217,7 +219,8 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 		}
 
 		if receipt.Status == 0 {
-			return nil, fmt.Errorf("tx reverted: %s", tx.Hash().Hex())
+			reason := c.getRevertReason(ctx, tx)
+			return nil, fmt.Errorf("tx reverted: %s (reason: %s)", tx.Hash().Hex(), reason)
 		}
 
 		return receipt, nil
@@ -272,6 +275,111 @@ func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types
 		case <-time.After(2 * time.Second):
 		}
 	}
+}
+
+// getRevertReason replays a failed transaction as a call to extract the revert data,
+// then decodes it into a human-readable string.
+func (c *Client) getRevertReason(ctx context.Context, tx *types.Transaction) string {
+	// Replay the tx as an eth_call at the block it was mined
+	msg := ethereum.CallMsg{
+		From:       c.addr,
+		To:         tx.To(),
+		Gas:        tx.Gas(),
+		GasPrice:   tx.GasPrice(),
+		GasFeeCap:  tx.GasFeeCap(),
+		GasTipCap:  tx.GasTipCap(),
+		Value:      tx.Value(),
+		Data:       tx.Data(),
+	}
+	result, err := c.eth.CallContract(ctx, msg, nil)
+	if err != nil {
+		// Try multiple extraction methods
+		if data := extractRevertData(err); len(data) > 0 {
+			return decodeRevertData(data)
+		}
+		// Try parsing hex from the error string itself (some RPCs embed it)
+		if data := extractHexFromError(err.Error()); len(data) > 0 {
+			return decodeRevertData(data)
+		}
+		// Return the raw error as the reason
+		return err.Error()
+	}
+	// If call succeeded (shouldn't happen for a reverted tx), return raw output
+	if len(result) > 0 {
+		return "0x" + hex.EncodeToString(result)
+	}
+	return "unknown (replay succeeded — state may have changed)"
+}
+
+// extractRevertData tries to pull hex revert data from an error via ErrorData() interface.
+func extractRevertData(err error) []byte {
+	// go-ethereum wraps revert data in various error types
+	var rpcErr interface{ ErrorData() interface{} }
+	if errors.As(err, &rpcErr) {
+		switch data := rpcErr.ErrorData().(type) {
+		case string:
+			if len(data) > 2 && data[:2] == "0x" {
+				b, _ := hex.DecodeString(data[2:])
+				return b
+			}
+		case []byte:
+			return data
+		}
+	}
+	return nil
+}
+
+// extractHexFromError scans an error string for a 0x-prefixed hex revert payload.
+func extractHexFromError(s string) []byte {
+	// Look for patterns like "0x08c379a0..." or "revert: 0x..." in the error string
+	for i := 0; i < len(s)-3; i++ {
+		if s[i] == '0' && s[i+1] == 'x' {
+			end := i + 2
+			for end < len(s) && isHexChar(s[end]) {
+				end++
+			}
+			hexStr := s[i+2 : end]
+			if len(hexStr) >= 8 { // at least a 4-byte selector
+				b, err := hex.DecodeString(hexStr)
+				if err == nil {
+					return b
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func isHexChar(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+// decodeRevertData decodes ABI-encoded revert data into a human-readable reason.
+// Handles: Error(string) from require(), and known custom errors.
+func decodeRevertData(data []byte) string {
+	if len(data) == 0 {
+		return "unknown"
+	}
+
+	// Error(string) — selector 0x08c379a0
+	if len(data) >= 68 && data[0] == 0x08 && data[1] == 0xc3 && data[2] == 0x79 && data[3] == 0xa0 {
+		// ABI decode: offset (32 bytes) + length (32 bytes) + string data
+		strLen := new(big.Int).SetBytes(data[36:68]).Uint64()
+		if 68+strLen <= uint64(len(data)) {
+			return string(data[68 : 68+strLen])
+		}
+	}
+
+	// Known custom errors (from verifier contract)
+	selector := hex.EncodeToString(data[:4])
+	switch selector {
+	case "7fcdd1f4":
+		return "ProofInvalid()"
+	case "a54f8e27":
+		return "PublicInputNotInField()"
+	}
+
+	return "0x" + hex.EncodeToString(data)
 }
 
 // GetBalance returns the native token balance in wei.
