@@ -55,8 +55,20 @@ type NodeConfig struct {
 
 // StorageConfig holds capacity/price thresholds.
 type StorageConfig struct {
-	MaxCapacity uint64 `toml:"max_capacity"`
-	MinPrice    uint64 `toml:"min_price"` // wei per chunk per period
+	MaxCapacityGB float64 `toml:"max_capacity_gb"` // max capacity in GB (0 = unlimited)
+	MinPrice      uint64  `toml:"min_price"`        // wei per chunk per period
+}
+
+// ChunkSize is the size of a single chunk in bytes (16 KB).
+const ChunkSize = 16384
+
+// MaxCapacityChunks converts MaxCapacityGB to chunks.
+// Returns 0 if MaxCapacityGB is 0 (unlimited).
+func (s *StorageConfig) MaxCapacityChunks() uint64 {
+	if s.MaxCapacityGB <= 0 {
+		return 0
+	}
+	return uint64(s.MaxCapacityGB * 1024 * 1024 * 1024 / ChunkSize)
 }
 
 // AutoExecuteConfig controls automatic order filling.

@@ -80,13 +80,13 @@ func runInit(args []string) {
 
 	// ── Chain ──
 	fmt.Println("── Chain Configuration ──")
-	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "http://127.0.0.1:9650/ext/bc/C/rpc"))
-	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "43113"))
+	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc"))
+	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "44946"))
 	chainID, _ := strconv.ParseInt(chainIDStr, 10, 64)
 	if chainID == 0 {
-		chainID = 43113
+		chainID = 44946
 	}
-	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", ""))
+	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xf269a406a2be691cb038203ff6bdcfc5e13acdc6"))
 	listenMode := prompt("Listen mode (poll/events)", "poll")
 	wsURL := ""
 	if listenMode == "events" {
@@ -147,10 +147,10 @@ func runInit(args []string) {
 
 	// ── Storage ──
 	fmt.Println("── Storage ──")
-	maxCapStr := prompt("Max capacity (chunks)", "1048576")
-	maxCap, _ := strconv.ParseUint(maxCapStr, 10, 64)
-	if maxCap == 0 {
-		maxCap = 1048576
+	maxCapGBStr := prompt("Max capacity (GB, 0=unlimited)", "10")
+	maxCapGB, _ := strconv.ParseFloat(maxCapGBStr, 64)
+	if maxCapGB < 0 {
+		maxCapGB = 0
 	}
 	minPriceStr := prompt("Min price (wei/chunk/period)", "1000")
 	minPrice, _ := strconv.ParseUint(minPriceStr, 10, 64)
@@ -178,7 +178,7 @@ func runInit(args []string) {
 		dataDir:       dataDir,
 		keysDir:       keysDir,
 		secretKeyPath: secretKeyPath,
-		maxCap:        maxCap,
+		maxCapGB:      maxCapGB,
 		minPrice:      minPrice,
 		autoExec:      autoExec,
 	})
@@ -220,7 +220,8 @@ type tomlParams struct {
 	ipfsURL, privKeyPath, dataDir, keysDir   string
 	secretKeyPath                            string
 	chainID                                  int64
-	maxCap, minPrice                         uint64
+	maxCapGB                                 float64
+	minPrice                                 uint64
 	pinFiles, autoExec                       bool
 }
 
@@ -258,7 +259,7 @@ func buildTOML(p tomlParams) string {
 	fmt.Fprintf(&b, "secret_key_path = %q\n", p.secretKeyPath)
 
 	b.WriteString("\n[storage]\n")
-	fmt.Fprintf(&b, "max_capacity = %d\n", p.maxCap)
+	fmt.Fprintf(&b, "max_capacity_gb = %g\n", p.maxCapGB)
 	fmt.Fprintf(&b, "min_price = %d\n", p.minPrice)
 
 	b.WriteString("\n[auto_execute]\n")

@@ -11,8 +11,8 @@ import (
 func baseConfig(extraChainFields string) string {
 	return `
 [chain]
-rpc_url = "http://127.0.0.1:9650/ext/bc/C/rpc"
-chain_id = 43113
+rpc_url = "https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc"
+chain_id = 44946
 market_address = "0x1234567890abcdef1234567890abcdef12345678"
 gas_priority = 2
 ` + extraChainFields + `

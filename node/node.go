@@ -542,8 +542,9 @@ func (n *Node) checkOrders(ctx context.Context) error {
 
 	// Apply local capacity cap if configured
 	capacity := info.Capacity
-	if n.cfg.Storage.MaxCapacity > 0 && n.cfg.Storage.MaxCapacity < capacity {
-		capacity = n.cfg.Storage.MaxCapacity
+	maxCap := n.cfg.Storage.MaxCapacityChunks()
+	if maxCap > 0 && maxCap < capacity {
+		capacity = maxCap
 	}
 
 	// Guard against uint64 underflow after slashing reduces capacity below used
