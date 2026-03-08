@@ -91,12 +91,12 @@ func (n *Node) detectOrderChanges(ctx context.Context) {
 			log.Debug().Err(err).Str("orderID", oid).Msg("health: could not fetch removed order details (already purged)")
 			continue
 		}
-		cid := extractCID(order.URI)
-		if cid != "" {
-			if err := n.ipfs.Unpin(ctx, cid); err != nil {
-				log.Debug().Err(err).Str("cid", cid).Msg("health: unpin failed (may already be unpinned)")
+		rootCID := extractRootCID(order.URI)
+		if rootCID != "" {
+			if err := n.ipfs.Unpin(ctx, rootCID); err != nil {
+				log.Debug().Err(err).Str("cid", rootCID).Msg("health: unpin failed (may already be unpinned)")
 			} else {
-				log.Info().Str("cid", cid).Str("orderID", oid).Msg("health: unpinned file for removed order")
+				log.Info().Str("cid", rootCID).Str("orderID", oid).Msg("health: unpinned file for removed order")
 			}
 		}
 	}

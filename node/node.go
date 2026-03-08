@@ -323,16 +323,16 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		return fmt.Errorf("get order details: %w", err)
 	}
 
-	cid := extractCID(order.URI)
-	if cid == "" {
+	ref := extractIPFSRef(order.URI)
+	if ref == "" {
 		return fmt.Errorf("no CID found in URI: %s", order.URI)
 	}
 
 	// 2. Fetch file from IPFS
 	fetchStart := time.Now()
-	fileData, err := n.ipfs.Cat(ctx, cid)
+	fileData, err := n.ipfs.Cat(ctx, ref)
 	if err != nil {
-		return fmt.Errorf("ipfs cat %s: %w", cid, err)
+		return fmt.Errorf("ipfs cat %s: %w", ref, err)
 	}
 	fetchDur := time.Since(fetchStart)
 
@@ -533,15 +533,15 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Verify file integrity before committing
-			cid := extractCID(order.URI)
-			if cid == "" {
+			ref := extractIPFSRef(order.URI)
+			if ref == "" {
 				log.Warn().Str("orderID", orderID.String()).Str("uri", order.URI).Msg("skip: no CID in URI")
 				continue
 			}
 
-			fileData, err := n.ipfs.Cat(ctx, cid)
+			fileData, err := n.ipfs.Cat(ctx, ref)
 			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Str("cid", cid).Msg("skip: can't fetch file")
+				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file")
 				continue
 			}
 
@@ -572,10 +572,11 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				continue
 			}
 
-			// Pin file in IPFS
+			// Pin root CID in IPFS (pins entire DAG even if order uses a subpath)
 			if n.cfg.IPFS.PinFiles {
-				if err := n.ipfs.Pin(ctx, cid); err != nil {
-					log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
+				rootCID := extractRootCID(order.URI)
+				if err := n.ipfs.Pin(ctx, rootCID); err != nil {
+					log.Warn().Err(err).Str("cid", rootCID).Msg("pin failed (non-fatal)")
 				}
 			}
 
@@ -726,21 +727,29 @@ func (n *Node) pruneStaleCache(ctx context.Context) {
 	}
 }
 
-// extractCID extracts an IPFS CID from a URI.
-// Supports formats: "ipfs://CID", "ipfs://CID/path", or raw CID.
-func extractCID(uri string) string {
+// extractIPFSRef extracts the full IPFS reference (CID or CID/path) from a URI.
+// Supports formats: "ipfs://CID", "ipfs://CID/path/to/file", or raw CID.
+// The returned value can be passed directly to IPFS Cat.
+func extractIPFSRef(uri string) string {
 	uri = strings.TrimSpace(uri)
 	if strings.HasPrefix(uri, "ipfs://") {
 		uri = strings.TrimPrefix(uri, "ipfs://")
 	}
-	// Take first path segment as CID
-	if idx := strings.Index(uri, "/"); idx > 0 {
-		uri = uri[:idx]
-	}
+	uri = strings.TrimRight(uri, "/")
 	if uri == "" {
 		return ""
 	}
 	return uri
+}
+
+// extractRootCID extracts just the root CID from a URI, stripping any subpath.
+// Use this for Pin/Unpin operations that apply to the whole DAG.
+func extractRootCID(uri string) string {
+	ref := extractIPFSRef(uri)
+	if idx := strings.Index(ref, "/"); idx > 0 {
+		return ref[:idx]
+	}
+	return ref
 }
 
 // loadOrBuildSMT attempts to load a cached SMT from disk, falling back to
