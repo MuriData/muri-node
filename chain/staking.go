@@ -10,8 +10,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// StakePerChunk is the collateral per chunk in wei (10^14 = 0.0001 MURI).
-const StakePerChunk = 100_000_000_000_000
+// StakePerChunk is the collateral per chunk in wei (4 * 10^14 = 0.0004 MURI).
+const StakePerChunk = 400_000_000_000_000
 
 // GetNodeInfo returns the on-chain node registration info.
 func (c *Client) GetNodeInfo(ctx context.Context) (*types.NodeInfo, error) {
