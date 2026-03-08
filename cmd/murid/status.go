@@ -41,7 +41,13 @@ func runStatus(args []string) {
 	defer client.Close()
 
 	fmt.Printf("Node address: %s\n", client.Address())
-	fmt.Printf("Chain: %d | RPC: %s\n\n", cfg.Chain.ChainID, cfg.Chain.RPCURL)
+	fmt.Printf("Chain: %d | RPC: %s\n", cfg.Chain.ChainID, cfg.Chain.RPCURL)
+
+	balance, err := client.GetBalance(ctx)
+	if err == nil {
+		fmt.Printf("Balance: %s MURI\n", formatWei(balance))
+	}
+	fmt.Println()
 
 	// Check registration
 	isValid, err := client.IsValidNode(ctx)
@@ -52,7 +58,7 @@ func runStatus(args []string) {
 
 	if !isValid {
 		fmt.Println("Status: NOT REGISTERED")
-		fmt.Println("  Register via the dashboard or call stakeNode on-chain.")
+		fmt.Println("  Run \"murid stake -capacity-gb 10\" to register and stake.")
 		return
 	}
 

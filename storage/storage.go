@@ -123,6 +123,14 @@ func LoadSecretKey(path string) (*big.Int, error) {
 	return new(big.Int).SetBytes(b), nil
 }
 
+// SavePrivateKey writes a hex-encoded EVM private key to a file.
+func SavePrivateKey(path string, keyHex string) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return fmt.Errorf("create key dir: %w", err)
+	}
+	return os.WriteFile(path, []byte(keyHex), 0o600)
+}
+
 // LoadPrivateKey reads a hex-encoded EVM private key from a file.
 func LoadPrivateKey(path string) (string, error) {
 	data, err := os.ReadFile(path)

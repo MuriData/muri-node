@@ -265,6 +265,11 @@ func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types
 	}
 }
 
+// GetBalance returns the native token balance in wei.
+func (c *Client) GetBalance(ctx context.Context) (*big.Int, error) {
+	return c.eth.BalanceAt(ctx, c.addr, nil)
+}
+
 // callOpts returns CallOpts with the given context.
 func (c *Client) callOpts(ctx context.Context) *bind.CallOpts {
 	return &bind.CallOpts{Context: ctx, From: c.addr}

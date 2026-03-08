@@ -182,7 +182,7 @@ func runInit(args []string) {
 	fmt.Printf("✓ Config written to %s\n", *outPath)
 
 	if evmAddr != "" {
-		fmt.Printf("✓ Fund %s with AVAX before starting\n", evmAddr)
+		fmt.Printf("✓ Fund %s with MURI before staking\n", evmAddr)
 	}
 
 	// Download keys if requested
@@ -192,7 +192,10 @@ func runInit(args []string) {
 	}
 
 	fmt.Println()
-	fmt.Printf("Run \"murid run -config %s\" to start your node.\n", *outPath)
+	fmt.Println("Next steps:")
+	fmt.Printf("  1. Send MURI to %s\n", evmAddr)
+	fmt.Printf("  2. murid stake -capacity-gb 10      # register and stake\n")
+	fmt.Printf("  3. murid run -config %s             # start the daemon\n", *outPath)
 }
 
 // saveEVMKey writes an ECDSA private key to a hex file.

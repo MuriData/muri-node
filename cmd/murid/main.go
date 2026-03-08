@@ -17,13 +17,18 @@ import (
 const usage = `Usage: murid <command> [flags]
 
 Commands:
-  init             Interactive setup — generate keys, write config
-  keygen           Generate a ZK secret key and derive its public key
-  status           Show node registration and on-chain status
-  run              Start the storage provider daemon (default)
-  pause            Stop accepting new orders (daemon keeps responding to challenges)
-  resume           Resume accepting new orders
-  download-keys    Download PoI prover/verifier keys from GitHub
+  init                Interactive setup — generate keys, write config
+  keygen              Generate a ZK secret key and derive its public key
+  wallet              Wallet management (new, import, balance)
+  stake               Register node and stake MURI on-chain
+  unstake             Unregister node and withdraw stake
+  increase-capacity   Add storage capacity (requires additional stake)
+  decrease-capacity   Remove storage capacity (unlocks stake)
+  status              Show node registration and on-chain status
+  run                 Start the storage provider daemon (default)
+  pause               Stop accepting new orders (daemon keeps responding to challenges)
+  resume              Resume accepting new orders
+  download-keys       Download PoI prover/verifier keys from GitHub
 
 Flags:
   -config string   Path to config file (default "murid.toml")
@@ -42,6 +47,16 @@ func main() {
 		runInit(os.Args[2:])
 	case "keygen":
 		runKeygen(os.Args[2:])
+	case "wallet":
+		runWallet(os.Args[2:])
+	case "stake":
+		runStake(os.Args[2:])
+	case "unstake":
+		runUnstake(os.Args[2:])
+	case "increase-capacity":
+		runIncreaseCapacity(os.Args[2:])
+	case "decrease-capacity":
+		runDecreaseCapacity(os.Args[2:])
 	case "status":
 		runStatus(os.Args[2:])
 	case "run":

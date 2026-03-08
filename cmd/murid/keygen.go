@@ -41,5 +41,5 @@ func runKeygen(args []string) {
 
 	fmt.Printf("ZK secret key saved to %s\n", *outPath)
 	fmt.Printf("Public key: 0x%s\n", pk.Text(16))
-	fmt.Println("\nPaste the public key into the dashboard when registering your node.")
+	fmt.Println("\nRun \"murid stake\" to register your node on-chain.")
 }
