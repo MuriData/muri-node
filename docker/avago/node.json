@@ -6,5 +6,5 @@
   "staking-port": 9651,
   "partial-sync-primary-network": true,
   "track-subnets": "2TCT3ars4Fv7dg9qStpQrQQQQNwGPajhxfkTBcWZHCamKKFKtP",
-  "http-allowed-hosts": "localhost"
+  "http-allowed-hosts": ["localhost", "127.0.0.1", "avago"]
 }
