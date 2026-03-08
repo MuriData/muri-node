@@ -1,0 +1,43 @@
+# Override: adds a local Avalanche L1 node (avago).
+# Use with: docker compose -f docker-compose.yml -f docker-compose.avago.yml up -d
+#
+# Requires ~2-4 GB RAM during bootstrap, ~1-2 GB steady state.
+# If you don't need a local node, the base compose uses an external RPC instead.
+
+services:
+  # ── Avalanche L1 RPC Node ──
+  # Host networking so avago P2P (9651) is directly reachable.
+  avago:
+    image: avaplatform/subnet-evm_avalanchego:v0.8.0-fuji_v1.14.0-fuji
+    network_mode: host
+    volumes:
+      - avago_data:/root/.avalanchego
+      - ./avago/node.json:/root/.avalanchego/configs/node.json:ro
+      - ./avago/chain-config.json:/root/.avalanchego/configs/chains/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/config.json:ro
+    environment:
+      - AVAGO_CONFIG_FILE=/root/.avalanchego/configs/node.json
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9650/ext/health | grep -q '\"healthy\":true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    restart: unless-stopped
+
+  # Override murid to depend on avago and use local RPC
+  murid:
+    depends_on:
+      avago:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+    environment:
+      - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
+      - MURID_CHAIN_ID=44946
+      - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
+      - MURID_IPFS_URL=http://127.0.0.1:5001
+      - MURID_KEYS_DIR=/app/keys
+      - MURID_DATA_DIR=/app/data
+
+volumes:
+  avago_data:

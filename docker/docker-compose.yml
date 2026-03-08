@@ -1,23 +1,16 @@
-services:
-  # ── Avalanche L1 RPC Node ──
-  # Host networking so avago P2P (9651) is directly reachable.
-  avago:
-    image: avaplatform/subnet-evm_avalanchego:v0.8.0-fuji_v1.14.0-fuji
-    network_mode: host
-    volumes:
-      - avago_data:/root/.avalanchego
-      - ./avago/node.json:/root/.avalanchego/configs/node.json:ro
-      - ./avago/chain-config.json:/root/.avalanchego/configs/chains/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/config.json:ro
-    environment:
-      - AVAGO_CONFIG_FILE=/root/.avalanchego/configs/node.json
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9650/ext/health | grep -q '\"healthy\":true' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 20
-      start_period: 120s
-    restart: unless-stopped
+# Base compose: IPFS + murid only.
+# Uses an external RPC by default (lightweight, no avago needed).
+#
+# Usage:
+#   Lightweight (external RPC):
+#     docker compose run --rm murid init    # set RPC URL during setup
+#     docker compose up -d
+#
+#   Full node (local avago):
+#     docker compose -f docker-compose.yml -f docker-compose.avago.yml run --rm murid init
+#     docker compose -f docker-compose.yml -f docker-compose.avago.yml up -d
 
+services:
   # ── IPFS (Kubo) ──
   # Host networking for better DHT discoverability — peers connect directly
   # without Docker NAT. Exposes ports 4001 (swarm), 5001 (API), 8080 (gateway).
@@ -44,15 +37,14 @@ services:
       dockerfile: docker/Dockerfile
     network_mode: host
     depends_on:
-      avago:
-        condition: service_healthy
       ipfs:
         condition: service_healthy
     volumes:
       - ./node:/app
     environment:
       # Defaults for "murid init" wizard (shown in [brackets] during prompts)
-      - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
+      # Points at public testnet RPC by default (no local avago needed)
+      - MURID_RPC_URL=https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
       - MURID_CHAIN_ID=44946
       - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
       - MURID_IPFS_URL=http://127.0.0.1:5001
@@ -61,5 +53,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  avago_data:
   ipfs_data:
