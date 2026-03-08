@@ -50,6 +50,14 @@ func promptYN(label string, defaultYes bool) bool {
 	return val == "y" || val == "yes"
 }
 
+// envDefault returns the environment variable value if set, otherwise the fallback.
+func envDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
 func runInit(args []string) {
 	fs := flag.NewFlagSet("init", flag.ExitOnError)
 	outPath := fs.String("config", "murid.toml", "config file to write")
@@ -72,13 +80,13 @@ func runInit(args []string) {
 
 	// ── Chain ──
 	fmt.Println("── Chain Configuration ──")
-	rpcURL := prompt("RPC URL", "http://127.0.0.1:9650/ext/bc/C/rpc")
-	chainIDStr := prompt("Chain ID", "43113")
+	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "http://127.0.0.1:9650/ext/bc/C/rpc"))
+	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "43113"))
 	chainID, _ := strconv.ParseInt(chainIDStr, 10, 64)
 	if chainID == 0 {
 		chainID = 43113
 	}
-	marketAddr := prompt("FileMarket contract address", "")
+	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", ""))
 	listenMode := prompt("Listen mode (poll/events)", "poll")
 	wsURL := ""
 	if listenMode == "events" {
@@ -133,7 +141,7 @@ func runInit(args []string) {
 
 	// ── IPFS ──
 	fmt.Println("── IPFS ──")
-	ipfsURL := prompt("Kubo API URL", "http://127.0.0.1:5001")
+	ipfsURL := prompt("Kubo API URL", envDefault("MURID_IPFS_URL", "http://127.0.0.1:5001"))
 	pinFiles := promptYN("Pin files after download?", true)
 	fmt.Println()
 

@@ -48,28 +48,15 @@ services:
       ipfs:
         condition: service_healthy
     volumes:
-      - murid_keys:/app/keys
-      - murid_data:/app/data
-      # Mount a custom config if you have one:
-      # - ./murid.toml:/app/murid.toml:ro
+      - ./node:/app
     environment:
-      # Chain — local Avalanche node
+      # Defaults for "murid init" wizard (shown in [brackets] during prompts)
       - MURID_RPC_URL=http://avago:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
       - MURID_CHAIN_ID=44946
       - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
-
-      # IPFS — local Kubo node
       - MURID_IPFS_URL=http://ipfs:5001
-
-      # Node
-      - MURID_LOG_LEVEL=info
-      - MURID_AUTO_EXECUTE=true
-      - MURID_MAX_CAPACITY=1048576
-      - MURID_MIN_PRICE=1000
     restart: unless-stopped
 
 volumes:
   avago_data:
   ipfs_data:
-  murid_keys:
-  murid_data:
