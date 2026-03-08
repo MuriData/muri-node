@@ -1,0 +1,21 @@
+# Build artifacts
+murid
+.abi/
+
+# Local dev state
+data/
+keys/
+*.toml
+!murid.example.toml
+
+# Docker / compose configs (mounted at runtime, not baked into image)
+docker/avago/
+docker/docker-compose.yml
+
+# Version control
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea

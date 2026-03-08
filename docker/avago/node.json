@@ -1,0 +1,10 @@
+{
+  "network-id": "fuji",
+  "public-ip-resolution-service": "opendns",
+  "http-host": "0.0.0.0",
+  "http-port": 9650,
+  "staking-port": 9651,
+  "partial-sync-primary-network": true,
+  "track-subnets": "2TCT3ars4Fv7dg9qStpQrQQQQNwGPajhxfkTBcWZHCamKKFKtP",
+  "http-allowed-hosts": "*"
+}

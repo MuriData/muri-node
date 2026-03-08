@@ -1,0 +1,75 @@
+services:
+  # ── Avalanche L1 RPC Node ──
+  avago:
+    image: avaplatform/subnet-evm_avalanchego:v0.8.0-fuji_v1.14.0-fuji
+    volumes:
+      - avago_data:/root/.avalanchego
+      - ./avago/node.json:/root/.avalanchego/configs/node.json:ro
+      - ./avago/chain-config.json:/root/.avalanchego/configs/chains/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/config.json:ro
+    environment:
+      - AVAGO_CONFIG_FILE=/root/.avalanchego/configs/node.json
+    ports:
+      - "9650:9650"       # HTTP API
+      - "9651:9651"       # staking / P2P
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9650/ext/health | grep -q '\"healthy\":true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    restart: unless-stopped
+
+  # ── IPFS (Kubo) ──
+  ipfs:
+    image: ipfs/kubo:latest
+    volumes:
+      - ipfs_data:/data/ipfs
+    ports:
+      - "4001:4001"       # swarm (peer connections)
+      - "8080:8080"       # gateway (optional, for browsing)
+    environment:
+      - IPFS_PROFILE=flatfs,server
+    healthcheck:
+      test: ["CMD-SHELL", "ipfs id || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── MuriData Storage Node ──
+  murid:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      avago:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+    volumes:
+      - murid_keys:/app/keys
+      - murid_data:/app/data
+      # Mount a custom config if you have one:
+      # - ./murid.toml:/app/murid.toml:ro
+    environment:
+      # Chain — local Avalanche node
+      - MURID_RPC_URL=http://avago:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
+      - MURID_CHAIN_ID=44946
+      - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
+
+      # IPFS — local Kubo node
+      - MURID_IPFS_URL=http://ipfs:5001
+
+      # Node
+      - MURID_LOG_LEVEL=info
+      - MURID_AUTO_EXECUTE=true
+      - MURID_MAX_CAPACITY=1048576
+      - MURID_MIN_PRICE=1000
+    restart: unless-stopped
+
+volumes:
+  avago_data:
+  ipfs_data:
+  murid_keys:
+  murid_data:

@@ -1,0 +1,6 @@
+{
+  "pruning-enabled": true,
+  "metrics-expensive-enabled": false,
+  "state-sync-enabled": true,
+  "skip-tx-indexing": false
+}
