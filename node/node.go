@@ -611,7 +611,7 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Check price threshold (Price is populated by GetOrderDetails)
-			if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Uint64() < n.cfg.Storage.MinPrice {
+			if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Cmp(new(big.Int).SetUint64(n.cfg.Storage.MinPrice)) < 0 {
 				continue
 			}
 
