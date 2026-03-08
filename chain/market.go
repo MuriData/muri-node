@@ -117,15 +117,15 @@ func (c *Client) GetGlobalStats(ctx context.Context) (struct {
 	return c.Market.GetGlobalStats(c.callOpts(ctx))
 }
 
-// ExecuteOrder claims a replica slot on the given order with a PoI proof of data possession.
-func (c *Client) ExecuteOrder(ctx context.Context, orderID *big.Int, proof [8]*big.Int, commitment [32]byte) (*ethtypes.Receipt, error) {
+// ExecuteOrder claims a replica slot on the given order with a compressed PoI proof.
+func (c *Client) ExecuteOrder(ctx context.Context, orderID *big.Int, proof [4]*big.Int, commitment [32]byte) (*ethtypes.Receipt, error) {
 	return c.SendTx(ctx, func(opts *bind.TransactOpts) (*ethtypes.Transaction, error) {
 		return c.Market.ExecuteOrder(opts, orderID, proof, commitment)
 	})
 }
 
-// SubmitProof submits a ZK proof for a challenge slot.
-func (c *Client) SubmitProof(ctx context.Context, slotIndex int, proof [8]*big.Int, commitment [32]byte) (*ethtypes.Receipt, error) {
+// SubmitProof submits a compressed ZK proof for a challenge slot.
+func (c *Client) SubmitProof(ctx context.Context, slotIndex int, proof [4]*big.Int, commitment [32]byte) (*ethtypes.Receipt, error) {
 	return c.SendTx(ctx, func(opts *bind.TransactOpts) (*ethtypes.Transaction, error) {
 		return c.Market.SubmitProof(opts, big.NewInt(int64(slotIndex)), proof, commitment)
 	})

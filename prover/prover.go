@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/MuriData/muri-zkproof/circuits/poi"
-	"github.com/MuriData/muri-zkproof/pkg/crypto"
+	muricrypto "github.com/MuriData/muri-zkproof/pkg/crypto"
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
 	"github.com/MuriData/muri-zkproof/pkg/setup"
 	"github.com/consensys/gnark-crypto/ecc"
@@ -27,9 +27,9 @@ type Prover struct {
 	zeroLeafHash *big.Int
 }
 
-// ProofResult holds the serialized proof output for on-chain submission.
+// ProofResult holds the compressed proof output for on-chain submission.
 type ProofResult struct {
-	SolidityProof [8]*big.Int
+	SolidityProof [4]*big.Int
 	Commitment    [32]byte
 }
 
@@ -47,7 +47,7 @@ func NewProver(keysDir string) (*Prover, error) {
 		return nil, fmt.Errorf("load keys: %w", err)
 	}
 
-	zeroLeaf := crypto.ComputeZeroLeafHash(poi.ElementSize, poi.NumChunks)
+	zeroLeaf := muricrypto.ComputeZeroLeafHash(poi.ElementSize, poi.NumChunks)
 
 	log.Info().Int("constraints", ccs.GetNbConstraints()).Msg("prover initialized")
 	return &Prover{
@@ -101,10 +101,10 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 		return nil, fmt.Errorf("local verify failed: %w", err)
 	}
 
-	// 6. Extract proof points for Solidity
-	solidityProof, err := extractSolidityProof(proof)
+	// 6. Extract and compress proof points for Solidity
+	compressedProof, err := extractAndCompressProof(proof)
 	if err != nil {
-		return nil, fmt.Errorf("extract solidity proof: %w", err)
+		return nil, fmt.Errorf("extract/compress proof: %w", err)
 	}
 
 	// 7. Convert commitment to [32]byte
@@ -114,7 +114,7 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 	copy(commitment[32-len(commitBytes):], commitBytes)
 
 	return &ProofResult{
-		SolidityProof: solidityProof,
+		SolidityProof: compressedProof,
 		Commitment:    commitment,
 	}, nil
 }
@@ -147,9 +147,9 @@ func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][
 		return nil, fmt.Errorf("local verify failed: %w", err)
 	}
 
-	solidityProof, err := extractSolidityProof(proof)
+	compressedProof, err := extractAndCompressProof(proof)
 	if err != nil {
-		return nil, fmt.Errorf("extract solidity proof: %w", err)
+		return nil, fmt.Errorf("extract/compress proof: %w", err)
 	}
 
 	var commitment [32]byte
@@ -157,7 +157,7 @@ func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][
 	copy(commitment[32-len(commitBytes):], commitBytes)
 
 	return &ProofResult{
-		SolidityProof: solidityProof,
+		SolidityProof: compressedProof,
 		Commitment:    commitment,
 	}, nil
 }
@@ -176,15 +176,16 @@ func (p *Prover) ZeroLeafHash() *big.Int {
 
 // PublicKeyFromSecret derives the public key from a ZK secret key.
 func PublicKeyFromSecret(sk *big.Int) *big.Int {
-	return crypto.DerivePublicKey(sk)
+	return muricrypto.DerivePublicKey(sk)
 }
 
-// extractSolidityProof extracts the 8 uint256 values from a Groth16 proof.
-// Format: [A.x, A.y, B.x1, B.x0, B.y1, B.y0, C.x, C.y]
-func extractSolidityProof(proof groth16.Proof) ([8]*big.Int, error) {
+// extractAndCompressProof extracts a Groth16 BN254 proof, then compresses it
+// from 8 uint256 (uncompressed) to 4 uint256 (compressed) matching the on-chain
+// verifier's compressProof format.
+func extractAndCompressProof(proof groth16.Proof) ([4]*big.Int, error) {
 	bn254Proof, ok := proof.(*groth16bn254.Proof)
 	if !ok {
-		return [8]*big.Int{}, fmt.Errorf("expected bn254 proof, got %T", proof)
+		return [4]*big.Int{}, fmt.Errorf("expected bn254 proof, got %T", proof)
 	}
 
 	aX, aY := new(big.Int), new(big.Int)
@@ -202,6 +203,8 @@ func extractSolidityProof(proof groth16.Proof) ([8]*big.Int, error) {
 	bn254Proof.Krs.X.BigInt(cX)
 	bn254Proof.Krs.Y.BigInt(cY)
 
-	// Solidity format: [A.x, A.y, B.x1, B.x0, B.y1, B.y0, C.x, C.y]
-	return [8]*big.Int{aX, aY, bX1, bX0, bY1, bY0, cX, cY}, nil
+	// Uncompressed format: [A.x, A.y, B.x1, B.x0, B.y1, B.y0, C.x, C.y]
+	uncompressed := [8]*big.Int{aX, aY, bX1, bX0, bY1, bY0, cX, cY}
+
+	return muricrypto.CompressProof(uncompressed)
 }

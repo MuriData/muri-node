@@ -1212,8 +1212,8 @@
       },
       {
         "name": "_proof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
       },
       {
         "name": "_commitment",
@@ -1249,7 +1249,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract Verifier"
+        "internalType": "contract IFspVerifier"
       }
     ],
     "stateMutability": "view"
@@ -2035,7 +2035,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract PlonkVerifier"
+        "internalType": "contract IKeyLeakVerifier"
       }
     ],
     "stateMutability": "view"
@@ -2552,8 +2552,8 @@
       },
       {
         "name": "_fspProof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
       }
     ],
     "outputs": [
@@ -2573,7 +2573,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract Verifier"
+        "internalType": "contract IPoiVerifier"
       }
     ],
     "stateMutability": "view"
@@ -2857,8 +2857,8 @@
       },
       {
         "name": "_proof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
       },
       {
         "name": "_commitment",
@@ -2880,8 +2880,8 @@
       },
       {
         "name": "_proof",
-        "type": "uint256[8]",
-        "internalType": "uint256[8]"
+        "type": "uint256[4]",
+        "internalType": "uint256[4]"
       },
       {
         "name": "_commitment",
