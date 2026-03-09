@@ -8,7 +8,7 @@ services:
   # ── Avalanche L1 RPC Node ──
   # Host networking so avago P2P (9651) is directly reachable.
   avago:
-    image: avaplatform/subnet-evm_avalanchego:v0.8.0-fuji_v1.14.0-fuji
+    image: ghcr.io/muridata/murichain-subnet-evm:latest
     network_mode: host
     volumes:
       - avago_data:/root/.avalanchego
@@ -28,7 +28,7 @@ services:
     environment:
       - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc
       - MURID_CHAIN_ID=97981
-      - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
+      - MURID_MARKET_ADDRESS=0xaab9f94671d6b22eee60509b5c3149e90a78fb54
       - MURID_IPFS_URL=http://127.0.0.1:5001
       - MURID_KEYS_DIR=/app/keys
       - MURID_DATA_DIR=/app/data

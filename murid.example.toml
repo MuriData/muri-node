@@ -3,7 +3,7 @@
 [chain]
 rpc_url = "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"
 chain_id = 97981
-market_address = "0xf269a406a2be691cb038203ff6bdcfc5e13acdc6"
+market_address = "0xaab9f94671d6b22eee60509b5c3149e90a78fb54"
 staking_address = ""   # auto-resolved from market contract if empty
 gas_limit = 2000000
 max_gas_price = 100    # gwei

@@ -86,7 +86,7 @@ func runInit(args []string) {
 	if chainID == 0 {
 		chainID = 97981
 	}
-	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xf269a406a2be691cb038203ff6bdcfc5e13acdc6"))
+	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xaab9f94671d6b22eee60509b5c3149e90a78fb54"))
 	listenMode := prompt("Listen mode (poll/events)", "poll")
 	wsURL := ""
 	if listenMode == "events" {

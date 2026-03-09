@@ -46,7 +46,7 @@ services:
       # Points at public testnet RPC by default (no local avago needed)
       - MURID_RPC_URL=https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc
       - MURID_CHAIN_ID=97981
-      - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
+      - MURID_MARKET_ADDRESS=0xaab9f94671d6b22eee60509b5c3149e90a78fb54
       - MURID_IPFS_URL=http://127.0.0.1:5001
       - MURID_KEYS_DIR=/app/keys
       - MURID_DATA_DIR=/app/data
