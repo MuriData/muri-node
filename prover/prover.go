@@ -10,8 +10,8 @@ import (
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
 	"github.com/MuriData/muri-zkproof/pkg/setup"
 	"github.com/consensys/gnark-crypto/ecc"
-	groth16bn254 "github.com/consensys/gnark/backend/groth16/bn254"
 	"github.com/consensys/gnark/backend/groth16"
+	groth16bn254 "github.com/consensys/gnark/backend/groth16/bn254"
 	"github.com/consensys/gnark/constraint"
 	"github.com/consensys/gnark/frontend"
 	"github.com/rs/zerolog/log"
@@ -67,7 +67,10 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 
 	// 1. Split file into chunks and build SMT
 	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
-	smt := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
+	smt, err := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
+	if err != nil {
+		return nil, fmt.Errorf("build SMT: %w", err)
+	}
 
 	log.Debug().
 		Int("chunks", len(chunks)).
@@ -163,10 +166,13 @@ func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][
 }
 
 // BuildSMT builds a sparse Merkle tree from file data.
-func (p *Prover) BuildSMT(fileData []byte) (*merkle.SparseMerkleTree, [][]byte) {
+func (p *Prover) BuildSMT(fileData []byte) (*merkle.SparseMerkleTree, [][]byte, error) {
 	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
-	smt := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
-	return smt, chunks
+	smt, err := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
+	if err != nil {
+		return nil, chunks, fmt.Errorf("build SMT: %w", err)
+	}
+	return smt, chunks, nil
 }
 
 // ZeroLeafHash returns the precomputed zero leaf hash for tree operations.

@@ -640,7 +640,11 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Build SMT and verify root matches on-chain
-			smt, chunks := n.prover.BuildSMT(fileData)
+			smt, chunks, err := n.prover.BuildSMT(fileData)
+			if err != nil {
+				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: can't build SMT")
+				continue
+			}
 			if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
 				log.Warn().
 					Str("orderID", orderID.String()).
@@ -877,7 +881,10 @@ func (n *Node) loadOrBuildSMT(orderID *big.Int, fileData []byte, expectedRoot *b
 	}
 
 	// Build from scratch
-	smt = merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
+	smt, err = merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
+	if err != nil {
+		return nil, nil, fmt.Errorf("build SMT: %w", err)
+	}
 
 	// Cache for next time
 	if err := n.store.SaveTree(orderID, smt); err != nil {
