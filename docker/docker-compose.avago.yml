@@ -13,7 +13,7 @@ services:
     volumes:
       - avago_data:/root/.avalanchego
       - ./avago/node.json:/root/.avalanchego/configs/node.json:ro
-      - ./avago/chain-config.json:/root/.avalanchego/configs/chains/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/config.json:ro
+      - ./avago/chain-config.json:/root/.avalanchego/configs/chains/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/config.json:ro
     environment:
       - AVAGO_CONFIG_FILE=/root/.avalanchego/configs/node.json
     restart: unless-stopped
@@ -26,8 +26,8 @@ services:
       ipfs:
         condition: service_healthy
     environment:
-      - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc
-      - MURID_CHAIN_ID=44946
+      - MURID_RPC_URL=http://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc
+      - MURID_CHAIN_ID=97981
       - MURID_MARKET_ADDRESS=0xf269a406a2be691cb038203ff6bdcfc5e13acdc6
       - MURID_IPFS_URL=http://127.0.0.1:5001
       - MURID_KEYS_DIR=/app/keys

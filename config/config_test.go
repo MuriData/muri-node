@@ -11,8 +11,8 @@ import (
 func baseConfig(extraChainFields string) string {
 	return `
 [chain]
-rpc_url = "https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc"
-chain_id = 44946
+rpc_url = "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"
+chain_id = 97981
 market_address = "0x1234567890abcdef1234567890abcdef12345678"
 gas_priority = 2
 ` + extraChainFields + `
@@ -60,7 +60,7 @@ func TestListenModePoll(t *testing.T) {
 func TestListenModeEvents(t *testing.T) {
 	cfg, err := loadFromString(t, baseConfig(`
 listen_mode = "events"
-ws_url = "ws://127.0.0.1:9650/ext/bc/C/ws"
+ws_url = "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws"
 `))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -68,7 +68,7 @@ ws_url = "ws://127.0.0.1:9650/ext/bc/C/ws"
 	if cfg.Chain.ListenMode != "events" {
 		t.Errorf("expected listen_mode=events, got %q", cfg.Chain.ListenMode)
 	}
-	if cfg.Chain.WSURL != "ws://127.0.0.1:9650/ext/bc/C/ws" {
+	if cfg.Chain.WSURL != "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws" {
 		t.Errorf("unexpected ws_url: %q", cfg.Chain.WSURL)
 	}
 }
@@ -100,7 +100,7 @@ func TestListenModeEventsMissingWSURL(t *testing.T) {
 func TestListenModeEventsInvalidWSURL(t *testing.T) {
 	_, err := loadFromString(t, baseConfig(`
 listen_mode = "events"
-ws_url = "http://127.0.0.1:9650/ext/bc/C/ws"
+ws_url = "http://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws"
 `))
 	if err == nil {
 		t.Fatal("expected error for http:// ws_url")
@@ -111,7 +111,7 @@ func TestListenModePollWithWSURL(t *testing.T) {
 	// ws_url is allowed in poll mode (ignored, no error)
 	_, err := loadFromString(t, baseConfig(`
 listen_mode = "poll"
-ws_url = "ws://127.0.0.1:9650/ext/bc/C/ws"
+ws_url = "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws"
 `))
 	if err != nil {
 		t.Fatalf("ws_url in poll mode should be allowed: %v", err)

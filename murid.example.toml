@@ -1,8 +1,8 @@
 # murid — MuriData storage provider node configuration
 
 [chain]
-rpc_url = "https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc"
-chain_id = 44946
+rpc_url = "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"
+chain_id = 97981
 market_address = "0xf269a406a2be691cb038203ff6bdcfc5e13acdc6"
 staking_address = ""   # auto-resolved from market contract if empty
 gas_limit = 2000000
@@ -13,7 +13,7 @@ max_retries = 3
 confirmation_blocks = 1
 listen_mode = "poll"   # "poll" or "events" (WebSocket event subscriptions)
 ws_url = ""            # WebSocket URL (required if listen_mode = "events")
-                       # e.g. "ws://127.0.0.1:9650/ext/bc/C/ws"
+                       # e.g. "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws"
 
 [ipfs]
 api_url = "http://127.0.0.1:5001"

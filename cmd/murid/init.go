@@ -80,17 +80,17 @@ func runInit(args []string) {
 
 	// ── Chain ──
 	fmt.Println("── Chain Configuration ──")
-	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "https://testnet-rpc.muri.moe/ext/bc/2qyiuZtqxCmwRosTYFBsoyTSsupLwsvvFPh9K2inL82Sd8m8Yf/rpc"))
-	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "44946"))
+	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"))
+	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "97981"))
 	chainID, _ := strconv.ParseInt(chainIDStr, 10, 64)
 	if chainID == 0 {
-		chainID = 44946
+		chainID = 97981
 	}
 	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xf269a406a2be691cb038203ff6bdcfc5e13acdc6"))
 	listenMode := prompt("Listen mode (poll/events)", "poll")
 	wsURL := ""
 	if listenMode == "events" {
-		wsURL = prompt("WebSocket URL", "ws://127.0.0.1:9650/ext/bc/C/ws")
+		wsURL = prompt("WebSocket URL", "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws")
 	}
 	fmt.Println()
 
