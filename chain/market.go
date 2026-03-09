@@ -74,11 +74,11 @@ func (c *Client) GetOrderDetails(ctx context.Context, orderID *big.Int) (*types.
 		return nil, fmt.Errorf("getOrderFinancials(%s): %w", orderID, err)
 	}
 
-	// Price is not returned by getOrderDetails/getOrderFinancials views;
-	// fetch from the orders mapping directly.
-	raw, err := c.Market.Orders(c.callOpts(ctx), orderID)
+	// Use the on-chain getOrderPrice view for the authoritative price per chunk per period.
+	// This is stored separately and does not change as escrow is drawn down by rewards.
+	price, err := c.Market.GetOrderPrice(c.callOpts(ctx), orderID)
 	if err != nil {
-		return nil, fmt.Errorf("orders(%s): %w", orderID, err)
+		return nil, fmt.Errorf("getOrderPrice(%s): %w", orderID, err)
 	}
 
 	return &types.OrderInfo{
@@ -90,7 +90,7 @@ func (c *Client) GetOrderDetails(ctx context.Context, orderID *big.Int) (*types.
 		Periods:     d.Periods,
 		Replicas:    d.Replicas,
 		Filled:      d.Filled,
-		Price:       raw.Price,
+		Price:       price,
 		Escrow:      f.Escrow,
 		StartPeriod: f.StartPeriod,
 	}, nil

@@ -1691,8 +1691,8 @@
       },
       {
         "name": "startPeriod_",
-        "type": "uint64",
-        "internalType": "uint64"
+        "type": "uint32",
+        "internalType": "uint32"
       },
       {
         "name": "expired_",
@@ -1722,6 +1722,25 @@
         "name": "",
         "type": "address[]",
         "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOrderPrice",
+    "inputs": [
+      {
+        "name": "_orderId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -2138,54 +2157,6 @@
   },
   {
     "type": "function",
-    "name": "nodeOrderEarnings",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "nodeOrderStartTimestamp",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "nodePendingRewards",
     "inputs": [
       {
@@ -2302,6 +2273,11 @@
         "name": "fileRoot",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "numChunks",
+        "type": "uint32",
+        "internalType": "uint32"
       }
     ],
     "stateMutability": "view"
@@ -2321,6 +2297,35 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "orderAssignments",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "node",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "startPeriod",
+        "type": "uint32",
+        "internalType": "uint32"
       }
     ],
     "stateMutability": "view"
@@ -2384,13 +2389,8 @@
   },
   {
     "type": "function",
-    "name": "orderToNodes",
+    "name": "orderUri",
     "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
       {
         "name": "",
         "type": "uint256",
@@ -2400,8 +2400,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "address",
-        "internalType": "address"
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "stateMutability": "view"
@@ -2423,21 +2423,14 @@
         "internalType": "address"
       },
       {
-        "name": "file",
-        "type": "tuple",
-        "internalType": "struct MarketStorage.FileMeta",
-        "components": [
-          {
-            "name": "root",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "uri",
-            "type": "string",
-            "internalType": "string"
-          }
-        ]
+        "name": "filled",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "replicas",
+        "type": "uint8",
+        "internalType": "uint8"
       },
       {
         "name": "numChunks",
@@ -2450,24 +2443,14 @@
         "internalType": "uint16"
       },
       {
-        "name": "replicas",
-        "type": "uint8",
-        "internalType": "uint8"
+        "name": "startPeriod",
+        "type": "uint32",
+        "internalType": "uint32"
       },
       {
-        "name": "price",
+        "name": "fileRoot",
         "type": "uint256",
         "internalType": "uint256"
-      },
-      {
-        "name": "filled",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "startPeriod",
-        "type": "uint64",
-        "internalType": "uint64"
       },
       {
         "name": "escrow",
@@ -2514,21 +2497,14 @@
     "name": "placeOrder",
     "inputs": [
       {
-        "name": "_file",
-        "type": "tuple",
-        "internalType": "struct MarketStorage.FileMeta",
-        "components": [
-          {
-            "name": "root",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "uri",
-            "type": "string",
-            "internalType": "string"
-          }
-        ]
+        "name": "_fileRoot",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_fileUri",
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "_numChunks",

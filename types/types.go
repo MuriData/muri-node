@@ -7,18 +7,19 @@ import (
 )
 
 // OrderInfo mirrors the on-chain FileOrder struct.
+// Price is fetched via the getOrderPrice view (pricePerChunkPerPeriod set at order placement).
 type OrderInfo struct {
-	ID        *big.Int
-	Owner     common.Address
-	URI       string
-	RootHash  *big.Int
-	NumChunks uint32
-	Periods   uint16
-	Replicas  uint8
-	Filled    uint8
-	Price     *big.Int
-	Escrow    *big.Int
-	StartPeriod uint64
+	ID          *big.Int
+	Owner       common.Address
+	URI         string
+	RootHash    *big.Int
+	NumChunks   uint32
+	Periods     uint16
+	Replicas    uint8
+	Filled      uint8
+	Price       *big.Int // from getOrderPrice: pricePerChunkPerPeriod
+	Escrow      *big.Int
+	StartPeriod uint32
 }
 
 // ChallengeSlotInfo mirrors the on-chain ChallengeSlot struct.
