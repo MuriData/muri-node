@@ -21,7 +21,7 @@ services:
       - ipfs_data:/data/ipfs
       - ./ipfs/001-bind-localhost.sh:/container-init.d/001-bind-localhost.sh:ro
     environment:
-      - IPFS_PROFILE=flatfs,server
+      - IPFS_PROFILE=flatfs
     healthcheck:
       test: ["CMD-SHELL", "ipfs id || exit 1"]
       interval: 10s
