@@ -6,7 +6,7 @@ toolchain go1.24.9
 
 require (
 	github.com/BurntSushi/toml v1.5.0
-	github.com/MuriData/muri-zkproof v0.0.0-20260309155959-11984f8530cd
+	github.com/MuriData/muri-zkproof v0.0.0-20260309185203-d7f92166200e
 	github.com/consensys/gnark v0.14.0
 	github.com/consensys/gnark-crypto v0.19.0
 	github.com/ethereum/go-ethereum v1.15.11
