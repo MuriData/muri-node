@@ -8,6 +8,8 @@ github.com/MuriData/muri-zkproof v0.0.0-20260224232012-a78ca24b7c38 h1:bSzqh7gOp
 github.com/MuriData/muri-zkproof v0.0.0-20260224232012-a78ca24b7c38/go.mod h1:QhiQ9K+Hg9cRd8XXFzgn25wARxwhQ168zEJZRdiuFQ8=
 github.com/MuriData/muri-zkproof v0.0.0-20260308150613-cdab7bf34ac4 h1:MRMEYRa5hegz7zrPh5SlV6XiKVUMEV5BC6/AqUt+ns8=
 github.com/MuriData/muri-zkproof v0.0.0-20260308150613-cdab7bf34ac4/go.mod h1:QhiQ9K+Hg9cRd8XXFzgn25wARxwhQ168zEJZRdiuFQ8=
+github.com/MuriData/muri-zkproof v0.0.0-20260309143248-32fa381388a1 h1:9g1OPIMNjtI45UybGULxOA0tdprfRVrGPWc2IOlqQDk=
+github.com/MuriData/muri-zkproof v0.0.0-20260309143248-32fa381388a1/go.mod h1:QhiQ9K+Hg9cRd8XXFzgn25wARxwhQ168zEJZRdiuFQ8=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=
 github.com/StackExchange/wmi v1.2.1/go.mod h1:rcmrprowKIVzvc+NUiLncP2uuArMWLCbu9SBzvHz7e8=
 github.com/VictoriaMetrics/fastcache v1.12.2 h1:N0y9ASrJ0F6h0QaC3o6uJb3NIZ9VKLjCM7NQbSmF7WI=
