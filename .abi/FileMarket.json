@@ -637,6 +637,11 @@
     "anonymous": false
   },
   {
+    "type": "error",
+    "name": "ProofInvalid",
+    "inputs": []
+  },
+  {
     "type": "event",
     "name": "RefundQueued",
     "inputs": [
@@ -1238,21 +1243,21 @@
     "stateMutability": "view"
   },
   {
-    "type": "fallback",
-    "stateMutability": "payable"
-  },
-  {
     "type": "function",
-    "name": "fspVerifier",
+    "name": "extension2",
     "inputs": [],
     "outputs": [
       {
         "name": "",
         "type": "address",
-        "internalType": "contract IFspVerifier"
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "fallback",
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -1988,21 +1993,6 @@
         "name": "_nodeStaking",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "_poiVerifier",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_fspVerifier",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_keyleakVerifier",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -2042,19 +2032,6 @@
         "name": "",
         "type": "bool",
         "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "keyleakVerifier",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IKeyLeakVerifier"
       }
     ],
     "stateMutability": "view"
@@ -2540,19 +2517,6 @@
       }
     ],
     "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "poiVerifier",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPoiVerifier"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
