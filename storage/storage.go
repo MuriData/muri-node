@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 )
 
 // Store manages local persistence of Merkle trees per order.
@@ -45,7 +46,7 @@ func (s *Store) SaveTree(orderID *big.Int, smt *merkle.SparseMerkleTree) error {
 }
 
 // LoadTree loads a cached SMT from disk. Returns nil if not found.
-func (s *Store) LoadTree(orderID *big.Int, zeroLeafHash *big.Int) (*merkle.SparseMerkleTree, error) {
+func (s *Store) LoadTree(orderID *big.Int, zeroLeafHash fr.Element) (*merkle.SparseMerkleTree, error) {
 	f, err := os.Open(s.treePath(orderID))
 	if err != nil {
 		if os.IsNotExist(err) {

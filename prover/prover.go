@@ -10,6 +10,7 @@ import (
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
 	"github.com/MuriData/muri-zkproof/pkg/setup"
 	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/consensys/gnark/backend/groth16"
 	groth16bn254 "github.com/consensys/gnark/backend/groth16/bn254"
 	"github.com/consensys/gnark/constraint"
@@ -24,7 +25,7 @@ type Prover struct {
 	pk  groth16.ProvingKey
 	vk  groth16.VerifyingKey
 
-	zeroLeafHash *big.Int
+	zeroLeafHash fr.Element
 }
 
 // ProofResult holds the compressed proof output for on-chain submission.
@@ -47,7 +48,7 @@ func NewProver(keysDir string) (*Prover, error) {
 		return nil, fmt.Errorf("load keys: %w", err)
 	}
 
-	zeroLeaf := muricrypto.ComputeZeroLeafHash(poi.ElementSize, poi.NumChunks)
+	zeroLeaf := muricrypto.ComputeZeroLeafHashFr(poi.ElementSize, poi.NumChunks)
 
 	log.Info().Int("constraints", ccs.GetNbConstraints()).Msg("prover initialized")
 	return &Prover{
@@ -80,9 +81,6 @@ func DeriveLeafIndices(randomness *big.Int, numLeaves int) [poi.OpeningsCount]in
 // GenerateProof builds an SMT from file data and generates a Groth16 proof.
 // Returns the serialized proof points and commitment for on-chain submission.
 func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) (*ProofResult, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
 	smt, err := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
 	if err != nil {
@@ -91,8 +89,11 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 
 	log.Debug().
 		Int("chunks", len(chunks)).
-		Str("root", fmt.Sprintf("0x%x", smt.Root)).
+		Str("root", fmt.Sprintf("0x%x", smt.Root.Bytes())).
 		Msg("built merkle tree")
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	result, err := poi.PrepareWitness(secretKey, randomness, chunks, smt)
 	if err != nil {
@@ -162,7 +163,7 @@ func (p *Prover) BuildSMT(fileData []byte) (*merkle.SparseMerkleTree, [][]byte, 
 }
 
 // ZeroLeafHash returns the precomputed zero leaf hash for tree operations.
-func (p *Prover) ZeroLeafHash() *big.Int {
+func (p *Prover) ZeroLeafHash() fr.Element {
 	return p.zeroLeafHash
 }
 

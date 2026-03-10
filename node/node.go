@@ -19,6 +19,7 @@ import (
 	"github.com/MuriData/muri-node/types"
 	"github.com/MuriData/muri-zkproof/circuits/poi"
 	"github.com/MuriData/muri-zkproof/pkg/merkle"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
 )
@@ -463,7 +464,7 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	var result *prover.ProofResult
 	var path string
 	smt, err := n.store.LoadTree(orderID, n.prover.ZeroLeafHash())
-	if err == nil && smt != nil && order.RootHash != nil && smt.Root.Cmp(order.RootHash) == 0 {
+	if err == nil && smt != nil && order.RootHash != nil && smt.RootBigInt().Cmp(order.RootHash) == 0 {
 		result, err = n.proveSelective(ctx, randomness, smt, ref)
 		if err != nil {
 			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("selective proof failed, falling back to full download")
@@ -879,11 +880,11 @@ func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
 		log.Warn().Err(err).Str("orderID", cand.id.String()).Str("ref", cand.ref).Msg("skip: can't fetch/hash file (cooldown 10m)")
 		return
 	}
-	if cand.order.RootHash == nil || smt.Root.Cmp(cand.order.RootHash) != 0 {
+	if cand.order.RootHash == nil || smt.RootBigInt().Cmp(cand.order.RootHash) != 0 {
 		log.Warn().
 			Str("orderID", cand.id.String()).
 			Str("expected", fmt.Sprintf("0x%x", cand.order.RootHash)).
-			Str("computed", fmt.Sprintf("0x%x", smt.Root)).
+			Str("computed", fmt.Sprintf("0x%x", smt.RootBigInt())).
 			Msg("skip: root hash mismatch")
 		return
 	}
@@ -1103,7 +1104,7 @@ func (n *Node) buildSMTStreaming(ctx context.Context, ref string, numChunks uint
 	// Pre-allocate the results slice. Each index is written by exactly one
 	// worker (disjoint indices), so no synchronization is needed for writes.
 	hashCap := int(numChunks) + 1
-	hashes := make([]*big.Int, hashCap)
+	hashes := make([]fr.Element, hashCap)
 
 	// Start parallel hash workers
 	workers := runtime.NumCPU()
