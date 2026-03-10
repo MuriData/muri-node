@@ -72,7 +72,13 @@ func (n *Node) detectOrderChanges(ctx context.Context) []*big.Int {
 	for _, oid := range orders {
 		key := oid.String()
 		if cid, ok := n.prevOrders[key]; ok {
-			// Carry forward the CID we already know.
+			// Carry forward the CID we already know. If it was empty from
+			// a previous failed fetch, retry now while the order is still active.
+			if cid == "" {
+				if order, err := n.chain.GetOrderDetails(ctx, oid); err == nil {
+					cid = extractRootCID(order.URI)
+				}
+			}
 			currentSet[key] = cid
 		} else {
 			// New order — fetch its CID now while it's still on-chain.
@@ -90,7 +96,7 @@ func (n *Node) detectOrderChanges(ctx context.Context) []*big.Int {
 	// First run: initialize snapshot without alerting about removals.
 	if len(n.prevOrders) == 0 && len(orders) > 0 {
 		n.prevOrders = currentSet
-		if err := n.store.SaveOrderMap(currentSet); err != nil {
+		if err := n.store.SaveOrderMapAtomic(currentSet); err != nil {
 			log.Warn().Err(err).Msg("health: failed to persist initial order map")
 		}
 		return orders
@@ -103,23 +109,92 @@ func (n *Node) detectOrderChanges(ctx context.Context) []*big.Int {
 			continue
 		}
 
-		log.Warn().Str("orderID", oid).Msg("health: order removed (cancelled, completed, or force-exited)")
-
-		if rootCID == "" {
+		// Skip cleanup if a challenge goroutine is actively working on this order.
+		// The deferred cleanup list will handle it after the challenge completes.
+		if n.isOrderInFlightChallenge(oid) {
+			log.Info().Str("orderID", oid).Msg("health: order removed but challenge in-flight, deferring cleanup")
+			n.deferCleanup(oid, rootCID)
 			continue
 		}
-		if err := n.ipfs.Unpin(ctx, rootCID); err != nil {
-			log.Debug().Err(err).Str("cid", rootCID).Msg("health: unpin failed (may already be unpinned)")
-		} else {
-			log.Info().Str("cid", rootCID).Str("orderID", oid).Msg("health: unpinned file for removed order")
-		}
+
+		n.cleanupRemovedOrder(ctx, oid, rootCID)
 	}
 
 	n.prevOrders = currentSet
 
 	// Persist to disk so restarts don't lose CID mappings.
-	if err := n.store.SaveOrderMap(currentSet); err != nil {
+	if err := n.store.SaveOrderMapAtomic(currentSet); err != nil {
 		log.Warn().Err(err).Msg("health: failed to persist order map")
 	}
+
+	// Process any deferred cleanups whose challenges have completed.
+	n.processDeferredCleanups(ctx)
+
 	return orders
+}
+
+// cleanupRemovedOrder handles IPFS unpin and logging for a removed order.
+func (n *Node) cleanupRemovedOrder(ctx context.Context, oid, rootCID string) {
+	log.Warn().Str("orderID", oid).Msg("health: order removed (cancelled, completed, or force-exited)")
+
+	if rootCID == "" || !n.cfg.IPFS.PinFiles {
+		return
+	}
+	if err := n.ipfs.Unpin(ctx, rootCID); err != nil {
+		log.Debug().Err(err).Str("cid", rootCID).Msg("health: unpin failed (may already be unpinned)")
+	} else {
+		log.Info().Str("cid", rootCID).Str("orderID", oid).Msg("health: unpinned file for removed order")
+	}
+}
+
+// deferredCleanup holds info for orders removed while a challenge was in-flight.
+type deferredCleanup struct {
+	orderID string
+	rootCID string
+}
+
+// deferCleanup adds an order to the deferred cleanup list.
+func (n *Node) deferCleanup(orderID, rootCID string) {
+	n.deferredCleanupsMu.Lock()
+	defer n.deferredCleanupsMu.Unlock()
+	// Avoid duplicates
+	for _, dc := range n.deferredCleanups {
+		if dc.orderID == orderID {
+			return
+		}
+	}
+	n.deferredCleanups = append(n.deferredCleanups, deferredCleanup{orderID, rootCID})
+}
+
+// processDeferredCleanups runs cleanup for orders whose challenges have finished.
+func (n *Node) processDeferredCleanups(ctx context.Context) {
+	n.deferredCleanupsMu.Lock()
+	var remaining []deferredCleanup
+	var ready []deferredCleanup
+	for _, dc := range n.deferredCleanups {
+		if n.isOrderInFlightChallenge(dc.orderID) {
+			remaining = append(remaining, dc)
+		} else {
+			ready = append(ready, dc)
+		}
+	}
+	n.deferredCleanups = remaining
+	n.deferredCleanupsMu.Unlock()
+
+	for _, dc := range ready {
+		n.cleanupRemovedOrder(ctx, dc.orderID, dc.rootCID)
+	}
+}
+
+// isOrderInFlightChallenge checks if any challenge goroutine is working on the given order.
+func (n *Node) isOrderInFlightChallenge(orderID string) bool {
+	found := false
+	n.inFlightChallengeOrders.Range(func(key, _ any) bool {
+		if key.(string) == orderID {
+			found = true
+			return false
+		}
+		return true
+	})
+	return found
 }

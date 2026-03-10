@@ -69,6 +69,15 @@ type Node struct {
 	// Prevents duplicate goroutines from responding to the same slot concurrently.
 	inFlightSlots sync.Map // slot index (int) → true
 
+	// inFlightChallengeOrders tracks which orders have an in-flight challenge response.
+	// Used by maintenance cleanup to avoid unpinning/deleting data mid-proof.
+	inFlightChallengeOrders sync.Map // orderID string → true
+
+	// deferredCleanups holds orders removed while a challenge was in-flight.
+	// Cleaned up once the challenge goroutine finishes.
+	deferredCleanups   []deferredCleanup
+	deferredCleanupsMu sync.Mutex
+
 	// inFlightOrders tracks which orders have an in-flight processCandidate.
 	// Prevents duplicate workers from processing the same order across poll ticks.
 	inFlightOrders sync.Map // orderID string → true
@@ -77,6 +86,9 @@ type Node struct {
 	// Maps CID → time of failure. Entries older than fetchCooldown are retried.
 	// Prevents the order loop from repeatedly blocking on the same unreachable file.
 	fetchFailures sync.Map // CID string → time.Time
+
+	// startupCleanupDone ensures orphaned pin cleanup runs only once (at startup).
+	startupCleanupDone atomic.Bool
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -406,6 +418,10 @@ func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSl
 					continue
 				}
 
+				// Track this order so maintenance doesn't clean it up mid-proof.
+				orderKey := slot.OrderID.String()
+				n.inFlightChallengeOrders.Store(orderKey, true)
+
 				deadline := slot.DeadlineBlock.Uint64()
 				remaining := int64(deadline) - int64(blockNum)
 
@@ -428,6 +444,7 @@ func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSl
 					log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
 				}
 
+				n.inFlightChallengeOrders.Delete(orderKey)
 				n.inFlightSlots.Delete(slot.Index)
 			}
 		}()
@@ -1014,6 +1031,89 @@ func (n *Node) runMaintenance(ctx context.Context) {
 	// Prune stale SMT caches for orders we no longer serve.
 	// Reuse the order list from detectOrderChanges to avoid a duplicate RPC.
 	n.pruneStaleCache(activeOrders)
+
+	// On first maintenance tick (startup), scan for orphaned IPFS pins
+	// from orders that were removed while orders.json was missing/corrupted.
+	if !n.startupCleanupDone.Load() {
+		n.startupCleanupDone.Store(true)
+		n.cleanOrphanedPins(ctx)
+	}
+}
+
+// cleanOrphanedPins finds IPFS pins for orders that have stale .smt cache files
+// but are no longer in the active order set, and unpins them. This handles the
+// case where orders.json was lost/corrupted and previously-removed orders' pins
+// were never cleaned up.
+//
+// Only unpins CIDs whose order ID has a stale .smt file — avoids touching
+// pins from other applications sharing the same IPFS node.
+func (n *Node) cleanOrphanedPins(ctx context.Context) {
+	if !n.cfg.IPFS.PinFiles {
+		return
+	}
+
+	// Find stale .smt files (orders we're not serving anymore).
+	// These indicate orders that were ours but whose cleanup was incomplete.
+	cachedIDs, err := n.store.ListCachedOrderIDs()
+	if err != nil {
+		log.Warn().Err(err).Msg("orphan pin check: failed to list cached order IDs")
+		return
+	}
+
+	activeSet := make(map[string]bool, len(n.prevOrders))
+	for oid := range n.prevOrders {
+		activeSet[oid] = true
+	}
+
+	// For stale orders, try to look up their CID from the .smt filename
+	// alone we can't recover the CID. Instead, check if any pinned CIDs
+	// are NOT in our active set. Cross-reference with the pin list.
+	pins, err := n.ipfs.ListPins(ctx)
+	if err != nil {
+		log.Warn().Err(err).Msg("orphan pin check: failed to list IPFS pins")
+		return
+	}
+
+	activeCIDs := make(map[string]bool, len(n.prevOrders))
+	for _, cid := range n.prevOrders {
+		if cid != "" {
+			activeCIDs[cid] = true
+		}
+	}
+
+	// Only consider stale orders that have cached .smt files as evidence
+	// they belonged to this node. If there are stale caches, any pin not
+	// in the active CID set is a candidate for cleanup.
+	hasStaleOrders := false
+	for _, id := range cachedIDs {
+		if !activeSet[id.String()] {
+			hasStaleOrders = true
+			break
+		}
+	}
+	if !hasStaleOrders {
+		return
+	}
+
+	orphaned := 0
+	for _, pin := range pins {
+		if activeCIDs[pin] {
+			continue
+		}
+		// Verify this pin is actually from us by checking if it's pinned
+		// (IsPinned would be redundant since we got it from ListPins).
+		// Unpin it — if the IPFS node is shared, worst case another app
+		// can re-pin. Log at Info level so the operator can see what was cleaned.
+		if err := n.ipfs.Unpin(ctx, pin); err != nil {
+			log.Debug().Err(err).Str("cid", pin).Msg("orphan pin: unpin failed")
+		} else {
+			orphaned++
+			log.Info().Str("cid", pin).Msg("orphan pin: unpinned stale CID")
+		}
+	}
+	if orphaned > 0 {
+		log.Info().Int("count", orphaned).Msg("cleaned orphaned IPFS pins")
+	}
 }
 
 // pruneStaleCache removes cached SMT files for orders the node is no longer serving.

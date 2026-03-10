@@ -151,12 +151,30 @@ func (s *Store) orderMapPath() string {
 }
 
 // SaveOrderMap persists the order-ID → root-CID mapping to disk.
+// Deprecated: use SaveOrderMapAtomic for crash-safe writes.
 func (s *Store) SaveOrderMap(orders map[string]string) error {
+	return s.SaveOrderMapAtomic(orders)
+}
+
+// SaveOrderMapAtomic persists the order-ID → root-CID mapping to disk using
+// an atomic write (write to temp file, then rename). This prevents corruption
+// if the process crashes mid-write.
+func (s *Store) SaveOrderMapAtomic(orders map[string]string) error {
 	data, err := json.Marshal(orders)
 	if err != nil {
 		return fmt.Errorf("marshal order map: %w", err)
 	}
-	return os.WriteFile(s.orderMapPath(), data, 0o644)
+
+	target := s.orderMapPath()
+	tmp := target + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+		return fmt.Errorf("write temp order map: %w", err)
+	}
+	if err := os.Rename(tmp, target); err != nil {
+		os.Remove(tmp) // best-effort cleanup
+		return fmt.Errorf("rename order map: %w", err)
+	}
+	return nil
 }
 
 // LoadOrderMap reads the persisted order-ID → root-CID mapping.

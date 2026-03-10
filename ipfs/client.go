@@ -482,6 +482,43 @@ func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
 	return false, fmt.Errorf("ipfs pin ls %s: status %d: %s", cid, resp.StatusCode, string(body))
 }
 
+// ListPins returns all directly-pinned ("recursive") CIDs from the local IPFS node.
+// This is used at startup to detect orphaned pins that should be cleaned up.
+func (c *Client) ListPins(ctx context.Context) ([]string, error) {
+	u := fmt.Sprintf("%s/api/v0/pin/ls?type=recursive", c.apiURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ipfs pin ls: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ipfs pin ls: status %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Kubo returns: {"Keys":{"QmCID":{"Type":"recursive"}, ...}}
+	var result struct {
+		Keys map[string]struct {
+			Type string `json:"Type"`
+		} `json:"Keys"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("parse pin ls: %w", err)
+	}
+
+	cids := make([]string, 0, len(result.Keys))
+	for cid := range result.Keys {
+		cids = append(cids, cid)
+	}
+	return cids, nil
+}
+
 // Provide announces to the DHT that this node can provide the given CID.
 // Uses the bulk HTTP client (2 min timeout) because DHT provide must contact
 // multiple peers across the network. Retries on transient failures.
