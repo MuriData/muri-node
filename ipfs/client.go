@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/MuriData/muri-node/config"
+	"github.com/rs/zerolog/log"
 )
 
 // apiURL builds a fully-escaped Kubo API URL with the given path and arg.
@@ -25,10 +26,11 @@ func (c *Client) apiEndpoint(path, arg string) string {
 
 // Client is an HTTP client for the Kubo IPFS API.
 type Client struct {
-	apiURL     string
-	http       *http.Client
-	maxRetries int
-	baseDelay  time.Duration
+	apiURL      string
+	http        *http.Client
+	idleTimeout time.Duration
+	maxRetries  int
+	baseDelay   time.Duration
 }
 
 // NewClient creates an IPFS client from config.
@@ -45,15 +47,26 @@ func NewClient(cfg config.IPFSConfig) *Client {
 	if baseDelay == 0 {
 		baseDelay = 2 * time.Second
 	}
+
+	// Clone the default transport and add ResponseHeaderTimeout.
+	// This catches unreachable IPFS nodes quickly (connection + headers)
+	// without capping the entire body transfer like http.Client.Timeout does.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.ResponseHeaderTimeout = timeout
+
 	return &Client{
-		apiURL:     cfg.APIURL,
-		http:       &http.Client{Timeout: timeout},
-		maxRetries: maxRetries,
-		baseDelay:  baseDelay,
+		apiURL:      cfg.APIURL,
+		http:        &http.Client{Transport: transport},
+		idleTimeout: timeout,
+		maxRetries:  maxRetries,
+		baseDelay:   baseDelay,
 	}
 }
 
 // Cat fetches the raw bytes of a CID from IPFS.
+// Connection and response-header timeouts are handled by the transport.
+// Body streaming uses an idle timeout so arbitrarily large files can transfer
+// as long as data keeps flowing.
 func (c *Client) Cat(ctx context.Context, cid string) ([]byte, error) {
 	url := c.apiEndpoint("/api/v0/cat", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
@@ -72,7 +85,78 @@ func (c *Client) Cat(ctx context.Context, cid string) ([]byte, error) {
 		return nil, fmt.Errorf("ipfs cat %s: status %d: %s", cid, resp.StatusCode, string(body))
 	}
 
-	return io.ReadAll(resp.Body)
+	return readAllIdleTimeout(ctx, resp.Body, c.idleTimeout)
+}
+
+// readAllIdleTimeout reads all data from body, timing out if no data arrives
+// for the specified idle duration. Unlike http.Client.Timeout which caps the
+// entire request lifetime, this only fires when data stops flowing — allowing
+// arbitrarily large files to transfer as long as progress continues.
+func readAllIdleTimeout(ctx context.Context, body io.ReadCloser, idle time.Duration) ([]byte, error) {
+	type chunk struct {
+		data []byte
+		err  error
+	}
+
+	ch := make(chan chunk, 4)
+
+	go func() {
+		defer close(ch)
+		buf := make([]byte, 256*1024) // 256 KB read buffer
+		for {
+			n, err := body.Read(buf)
+			if n > 0 {
+				data := make([]byte, n)
+				copy(data, buf[:n])
+				ch <- chunk{data: data}
+			}
+			if err != nil {
+				if err != io.EOF {
+					ch <- chunk{err: err}
+				}
+				return
+			}
+		}
+	}()
+
+	var result bytes.Buffer
+	received := int64(0)
+	timer := time.NewTimer(idle)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			body.Close()
+			return nil, ctx.Err()
+
+		case c, ok := <-ch:
+			if !ok {
+				// Reader goroutine hit EOF — transfer complete.
+				if received > 1024*1024 {
+					log.Debug().Int64("bytes", received).Msg("ipfs download complete")
+				}
+				return result.Bytes(), nil
+			}
+			if c.err != nil {
+				return nil, c.err
+			}
+			result.Write(c.data)
+			received += int64(len(c.data))
+			// Reset idle timer — data is still flowing.
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+			timer.Reset(idle)
+
+		case <-timer.C:
+			body.Close() // unblocks the reader goroutine
+			return nil, fmt.Errorf("idle timeout: no data received for %v (got %d bytes so far)", idle, received)
+		}
+	}
 }
 
 // CatWithRetry fetches the raw bytes of a CID with exponential backoff retry.

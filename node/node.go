@@ -425,7 +425,9 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 
 	// 2. Fetch file from IPFS (with exponential backoff retry)
 	fetchStart := time.Now()
-	fileData, err := n.ipfs.CatWithRetry(ctx, ref)
+	fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
+	fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
+	fetchCancel()
 	if err != nil {
 		return fmt.Errorf("ipfs cat %s: %w", ref, err)
 	}
@@ -653,8 +655,9 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				continue
 			}
 
-			// Use a bounded timeout so a slow/unreachable file doesn't stall the loop
-			fetchCtx, fetchCancel := context.WithTimeout(ctx, 60*time.Second)
+			// Size-proportional timeout: base 2 min + 1s per MB (assumes ≥1 MB/s).
+			// The per-read idle timeout in the IPFS client catches actual hangs faster.
+			fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
 			fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
 			fetchCancel()
 			if err != nil {
@@ -882,6 +885,19 @@ func extractRootCID(uri string) string {
 		return ref[:idx]
 	}
 	return ref
+}
+
+// fetchTimeout computes a generous IPFS fetch deadline based on file size.
+// Base of 2 minutes + 1 second per MB assumes a minimum ~1 MB/s throughput.
+// The per-read idle timeout in the IPFS client catches actual hangs much faster;
+// this outer timeout guards against impossibly slow but technically alive transfers.
+func fetchTimeout(numChunks uint32) time.Duration {
+	const chunkSize = 16384 // 16 KB
+	sizeMB := uint64(numChunks) * chunkSize / (1024 * 1024)
+	if sizeMB < 1 {
+		sizeMB = 1
+	}
+	return 2*time.Minute + time.Duration(sizeMB)*time.Second
 }
 
 // loadOrBuildSMT attempts to load a cached SMT from disk, falling back to
