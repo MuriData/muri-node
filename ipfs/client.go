@@ -431,7 +431,9 @@ func (c *Client) Provide(ctx context.Context, cid string) error {
 }
 
 func (c *Client) provideOnce(ctx context.Context, cid string) error {
-	u := c.apiEndpoint("/api/v0/dht/provide", cid)
+	// Kubo 0.40+ moved /api/v0/dht/provide → /api/v0/routing/provide.
+	// Try the new endpoint first, fall back to the old one for older versions.
+	u := c.apiEndpoint("/api/v0/routing/provide", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, nil)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
@@ -439,7 +441,7 @@ func (c *Client) provideOnce(ctx context.Context, cid string) error {
 
 	resp, err := c.httpBulk.Do(req)
 	if err != nil {
-		return fmt.Errorf("ipfs dht provide: %w", err)
+		return fmt.Errorf("ipfs routing provide: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -447,7 +449,7 @@ func (c *Client) provideOnce(ctx context.Context, cid string) error {
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("ipfs dht provide %s: status %d: %s", cid, resp.StatusCode, truncate(body, 256))
+		return fmt.Errorf("ipfs routing provide %s: status %d: %s", cid, resp.StatusCode, truncate(body, 256))
 	}
 
 	return nil
