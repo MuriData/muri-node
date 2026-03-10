@@ -159,14 +159,42 @@ func readAllIdleTimeout(ctx context.Context, body io.ReadCloser, idle time.Durat
 	}
 }
 
-// CatWithRetry fetches the raw bytes of a CID with exponential backoff retry.
-// Delays: baseDelay, baseDelay*2, baseDelay*4, ... up to maxRetries attempts.
-func (c *Client) CatWithRetry(ctx context.Context, cid string) ([]byte, error) {
+// CatRange fetches a byte range from a CID using Kubo's offset/length parameters.
+// Only the IPFS DAG blocks covering the requested range are retrieved from the network.
+func (c *Client) CatRange(ctx context.Context, cid string, offset, length int64) ([]byte, error) {
+	params := url.Values{
+		"arg":    {cid},
+		"offset": {fmt.Sprintf("%d", offset)},
+		"length": {fmt.Sprintf("%d", length)},
+	}
+	u := fmt.Sprintf("%s/api/v0/cat?%s", c.apiURL, params.Encode())
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ipfs cat range: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ipfs cat range %s: status %d: %s", cid, resp.StatusCode, string(body))
+	}
+
+	// Response is bounded by the requested length, so io.ReadAll is fine.
+	return io.ReadAll(resp.Body)
+}
+
+// withRetry executes fn with exponential backoff retry.
+func (c *Client) withRetry(ctx context.Context, fn func() ([]byte, error)) ([]byte, error) {
 	var lastErr error
 	delay := c.baseDelay
 
 	for attempt := 0; attempt <= c.maxRetries; attempt++ {
-		data, err := c.Cat(ctx, cid)
+		data, err := fn()
 		if err == nil {
 			return data, nil
 		}
@@ -185,6 +213,16 @@ func (c *Client) CatWithRetry(ctx context.Context, cid string) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("after %d retries: %w", c.maxRetries, lastErr)
+}
+
+// CatWithRetry fetches the raw bytes of a CID with exponential backoff retry.
+func (c *Client) CatWithRetry(ctx context.Context, cid string) ([]byte, error) {
+	return c.withRetry(ctx, func() ([]byte, error) { return c.Cat(ctx, cid) })
+}
+
+// CatRangeWithRetry fetches a byte range with exponential backoff retry.
+func (c *Client) CatRangeWithRetry(ctx context.Context, cid string, offset, length int64) ([]byte, error) {
+	return c.withRetry(ctx, func() ([]byte, error) { return c.CatRange(ctx, cid, offset, length) })
 }
 
 // addResponse is the JSON response from /api/v0/add.

@@ -58,14 +58,31 @@ func NewProver(keysDir string) (*Prover, error) {
 	}, nil
 }
 
+// DeriveLeafIndices extracts the 8 leaf indices that the PoI circuit will
+// open for a given randomness and tree size. This allows pre-fetching only
+// the needed chunks instead of downloading the entire file.
+func DeriveLeafIndices(randomness *big.Int, numLeaves int) [poi.OpeningsCount]int {
+	var indices [poi.OpeningsCount]int
+	numLeavesBig := big.NewInt(int64(numLeaves))
+	for k := 0; k < poi.OpeningsCount; k++ {
+		bitOffset := k * poi.MaxTreeDepth
+		var rawIndex int64
+		for i := 0; i < poi.MaxTreeDepth; i++ {
+			bit := randomness.Bit(bitOffset + i)
+			rawIndex |= int64(bit) << i
+		}
+		leafIndexBig := new(big.Int).Mod(big.NewInt(rawIndex), numLeavesBig)
+		indices[k] = int(leafIndexBig.Int64())
+	}
+	return indices
+}
+
 // GenerateProof builds an SMT from file data and generates a Groth16 proof.
 // Returns the serialized proof points and commitment for on-chain submission.
 func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) (*ProofResult, error) {
-	// Serialize: proof generation is CPU-bound and uses all cores
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// 1. Split file into chunks and build SMT
 	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
 	smt, err := merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, p.zeroLeafHash)
 	if err != nil {
@@ -77,52 +94,15 @@ func (p *Prover) GenerateProof(secretKey, randomness *big.Int, fileData []byte) 
 		Str("root", fmt.Sprintf("0x%x", smt.Root)).
 		Msg("built merkle tree")
 
-	// 2. Prepare witness (parallel 8-opening)
 	result, err := poi.PrepareWitness(secretKey, randomness, chunks, smt)
 	if err != nil {
 		return nil, fmt.Errorf("prepare witness: %w", err)
 	}
 
-	// 3. Create gnark witness
-	witness, err := frontend.NewWitness(&result.Assignment, ecc.BN254.ScalarField())
-	if err != nil {
-		return nil, fmt.Errorf("create witness: %w", err)
-	}
-
-	// 4. Generate Groth16 proof
-	proof, err := groth16.Prove(p.ccs, p.pk, witness)
-	if err != nil {
-		return nil, fmt.Errorf("prove: %w", err)
-	}
-
-	// 5. Verify locally as sanity check
-	publicWitness, err := witness.Public()
-	if err != nil {
-		return nil, fmt.Errorf("extract public witness: %w", err)
-	}
-	if err := groth16.Verify(proof, p.vk, publicWitness); err != nil {
-		return nil, fmt.Errorf("local verify failed: %w", err)
-	}
-
-	// 6. Extract and compress proof points for Solidity
-	compressedProof, err := extractAndCompressProof(proof)
-	if err != nil {
-		return nil, fmt.Errorf("extract/compress proof: %w", err)
-	}
-
-	// 7. Convert commitment to [32]byte
-	var commitment [32]byte
-	commitBytes := result.Commitment.Bytes()
-	// Right-align in 32 bytes (big-endian)
-	copy(commitment[32-len(commitBytes):], commitBytes)
-
-	return &ProofResult{
-		SolidityProof: compressedProof,
-		Commitment:    commitment,
-	}, nil
+	return p.proveFromWitness(result)
 }
 
-// GenerateProofFromSMT generates a proof using a pre-built SMT (from cache).
+// GenerateProofFromSMT generates a proof using a pre-built SMT and chunk data.
 func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][]byte, smt *merkle.SparseMerkleTree) (*ProofResult, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -132,6 +112,12 @@ func (p *Prover) GenerateProofFromSMT(secretKey, randomness *big.Int, chunks [][
 		return nil, fmt.Errorf("prepare witness: %w", err)
 	}
 
+	return p.proveFromWitness(result)
+}
+
+// proveFromWitness generates and verifies a Groth16 proof from a prepared witness.
+// Caller must hold p.mu.
+func (p *Prover) proveFromWitness(result *poi.WitnessResult) (*ProofResult, error) {
 	witness, err := frontend.NewWitness(&result.Assignment, ecc.BN254.ScalarField())
 	if err != nil {
 		return nil, fmt.Errorf("create witness: %w", err)

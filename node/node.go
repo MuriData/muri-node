@@ -403,8 +403,13 @@ func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSl
 	wg.Wait()
 }
 
-// respondToChallenge fetches the file, generates a proof, and submits it on-chain.
-// Uses cached SMT when available to avoid rebuilding the Merkle tree.
+// respondToChallenge generates a proof and submits it on-chain.
+//
+// Fast path (cached SMT): derives the 8 leaf indices from randomness, fetches
+// only those chunks via IPFS byte-range requests (~128 KB for a 1 GB file),
+// then generates the proof. Falls back to the slow path on any error.
+//
+// Slow path: downloads the entire file, builds/loads the SMT, generates proof.
 func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, randomness *big.Int) error {
 	if randomness == nil || randomness.Sign() == 0 {
 		return fmt.Errorf("slot %d: nil or zero randomness, cannot generate proof", slotIndex)
@@ -423,28 +428,40 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		return fmt.Errorf("no CID found in URI: %s", order.URI)
 	}
 
-	// 2. Fetch file from IPFS (with exponential backoff retry)
-	fetchStart := time.Now()
-	fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-	fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
-	fetchCancel()
-	if err != nil {
-		return fmt.Errorf("ipfs cat %s: %w", ref, err)
-	}
-	fetchDur := time.Since(fetchStart)
-
-	// 3. Build or load cached SMT, then generate proof
-	proveStart := time.Now()
-	smt, chunks, err := n.loadOrBuildSMT(orderID, fileData, order.RootHash)
-	if err != nil {
-		return fmt.Errorf("build smt: %w", err)
+	// 2. Try fast path: cached SMT + selective chunk fetch
+	var result *prover.ProofResult
+	var path string
+	smt, err := n.store.LoadTree(orderID, n.prover.ZeroLeafHash())
+	if err == nil && smt != nil && order.RootHash != nil && smt.Root.Cmp(order.RootHash) == 0 {
+		result, err = n.proveSelective(ctx, randomness, smt, ref)
+		if err != nil {
+			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("selective proof failed, falling back to full download")
+			result = nil
+		} else {
+			path = "selective"
+		}
 	}
 
-	result, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
-	if err != nil {
-		return fmt.Errorf("generate proof: %w", err)
+	// 3. Slow path: full file download
+	if result == nil {
+		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
+		fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
+		fetchCancel()
+		if err != nil {
+			return fmt.Errorf("ipfs cat %s: %w", ref, err)
+		}
+
+		smt, chunks, err := n.loadOrBuildSMT(orderID, fileData, order.RootHash)
+		if err != nil {
+			return fmt.Errorf("build smt: %w", err)
+		}
+
+		result, err = n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+		if err != nil {
+			return fmt.Errorf("generate proof: %w", err)
+		}
+		path = "full"
 	}
-	proveDur := time.Since(proveStart)
 
 	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
 	freshSlot, err := n.chain.GetSlotInfo(ctx, slotIndex)
@@ -460,17 +477,90 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		return fmt.Errorf("submit proof: %w", err)
 	}
 
-	totalDur := time.Since(start)
 	log.Info().
 		Int("slot", slotIndex).
 		Str("orderID", orderID.String()).
-		Dur("fetch", fetchDur).
-		Dur("prove", proveDur).
-		Dur("total", totalDur).
+		Str("path", path).
+		Dur("total", time.Since(start)).
 		Str("tx", receipt.TxHash.Hex()).
 		Msg("proof submitted successfully")
 
 	return nil
+}
+
+// proveSelective generates a proof by fetching only the 8 challenged chunks
+// (via IPFS byte-range requests) instead of downloading the entire file.
+func (n *Node) proveSelective(ctx context.Context, randomness *big.Int, smt *merkle.SparseMerkleTree, ref string) (*prover.ProofResult, error) {
+	// Derive the 8 leaf indices the circuit will open
+	indices := prover.DeriveLeafIndices(randomness, smt.NumLeaves)
+
+	// Collect unique indices (small files may repeat via modular wrapping)
+	unique := make(map[int]struct{})
+	for _, idx := range indices {
+		unique[idx] = struct{}{}
+	}
+
+	// Fetch unique chunks in parallel via byte-range requests
+	fetchCtx, fetchCancel := context.WithTimeout(ctx, 2*time.Minute)
+	chunkMap, err := n.fetchChunksSelective(fetchCtx, ref, unique)
+	fetchCancel()
+	if err != nil {
+		return nil, fmt.Errorf("selective fetch: %w", err)
+	}
+
+	log.Debug().
+		Int("unique_chunks", len(unique)).
+		Int("tree_leaves", smt.NumLeaves).
+		Msg("selective fetch complete")
+
+	// Build sparse chunks slice — only the 8 needed indices are populated.
+	// PrepareWitness only accesses chunks[leafIndex] for the derived indices.
+	sparseChunks := make([][]byte, smt.NumLeaves)
+	for idx, data := range chunkMap {
+		sparseChunks[idx] = data
+	}
+
+	return n.prover.GenerateProofFromSMT(n.secretKey, randomness, sparseChunks, smt)
+}
+
+// fetchChunksSelective fetches specific file chunks by index from IPFS using
+// byte-range requests. Each chunk is poi.FileSize bytes at offset index*FileSize.
+// Fetches run in parallel; returns a map of index → padded chunk data.
+func (n *Node) fetchChunksSelective(ctx context.Context, ref string, indices map[int]struct{}) (map[int][]byte, error) {
+	type result struct {
+		idx  int
+		data []byte
+		err  error
+	}
+
+	ch := make(chan result, len(indices))
+	for idx := range indices {
+		go func(i int) {
+			offset := int64(i) * int64(poi.FileSize)
+			data, err := n.ipfs.CatRangeWithRetry(ctx, ref, offset, int64(poi.FileSize))
+			if err != nil {
+				ch <- result{i, nil, err}
+				return
+			}
+			// Zero-pad last chunk if shorter (same as SplitIntoChunks)
+			if len(data) < poi.FileSize {
+				padded := make([]byte, poi.FileSize)
+				copy(padded, data)
+				data = padded
+			}
+			ch <- result{i, data, nil}
+		}(idx)
+	}
+
+	m := make(map[int][]byte, len(indices))
+	for range indices {
+		r := <-ch
+		if r.err != nil {
+			return nil, fmt.Errorf("chunk %d: %w", r.idx, r.err)
+		}
+		m[r.idx] = r.data
+	}
+	return m, nil
 }
 
 // orderLoop dispatches to event-based or poll-based order listening.
