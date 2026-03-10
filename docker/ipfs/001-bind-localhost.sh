@@ -70,6 +70,20 @@ ipfs config --json Routing '{
 # DHT (records expire after ~24h). "pinned" strategy only announces CIDs
 # we've explicitly pinned (our stored files), not transient cache blocks.
 # (Kubo 0.33+: Reprovider fields migrated to Provide)
+# Remove legacy Reprovider section from persisted config if present.
+# Kubo 0.40+ fatals if the deprecated Reprovider key exists at all.
+# "ipfs config replace" reads a full JSON config from stdin — we use it
+# to round-trip the config through the ipfs tool itself, which is safe.
+IPFS_CFG="${IPFS_PATH:-/data/ipfs}/config"
+if grep -q '"Reprovider"' "$IPFS_CFG" 2>/dev/null; then
+  # Export current config, strip Reprovider via grep + sed, re-import.
+  # ipfs config show outputs valid JSON; we remove the key block and any
+  # trailing comma, then feed it back via ipfs config replace.
+  ipfs config show | \
+    sed '/"Reprovider":/,/^  }/d' | \
+    sed 's/,\([[:space:]]*\)}/\1}/' | \
+    ipfs config replace -
+fi
 ipfs config --json Provide.Strategy '"pinned"'
 ipfs config --json Provide.DHT.Interval '"12h"'
 
