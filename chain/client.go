@@ -282,14 +282,13 @@ func (c *Client) waitForReceipt(ctx context.Context, txHash common.Hash) (*types
 func (c *Client) getRevertReason(ctx context.Context, tx *types.Transaction) string {
 	// Replay the tx as an eth_call at the block it was mined
 	msg := ethereum.CallMsg{
-		From:       c.addr,
-		To:         tx.To(),
-		Gas:        tx.Gas(),
-		GasPrice:   tx.GasPrice(),
-		GasFeeCap:  tx.GasFeeCap(),
-		GasTipCap:  tx.GasTipCap(),
-		Value:      tx.Value(),
-		Data:       tx.Data(),
+		From:      c.addr,
+		To:        tx.To(),
+		Gas:       tx.Gas(),
+		GasFeeCap: tx.GasFeeCap(),
+		GasTipCap: tx.GasTipCap(),
+		Value:     tx.Value(),
+		Data:      tx.Data(),
 	}
 	result, err := c.eth.CallContract(ctx, msg, nil)
 	if err != nil {
