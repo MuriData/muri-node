@@ -58,6 +58,10 @@ type Node struct {
 	// prevOrders tracks known orders for cancellation/removal detection.
 	// Maps order ID string → root CID (for unpinning when the order disappears).
 	prevOrders map[string]string
+
+	// inFlightSlots tracks which challenge slots have an in-flight response.
+	// Prevents duplicate goroutines from responding to the same slot concurrently.
+	inFlightSlots sync.Map // slot index (int) → true
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -364,6 +368,12 @@ func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSl
 					return
 				}
 
+				// Skip if another goroutine is already handling this slot
+				if _, loaded := n.inFlightSlots.LoadOrStore(slot.Index, true); loaded {
+					log.Debug().Int("slot", slot.Index).Msg("slot already in-flight, skipping")
+					continue
+				}
+
 				deadline := slot.DeadlineBlock.Uint64()
 				remaining := int64(deadline) - int64(blockNum)
 
@@ -385,6 +395,8 @@ func (n *Node) dispatchChallenges(ctx context.Context, tasks []types.ChallengeSl
 				if err := n.respondToChallenge(ctx, slot.Index, slot.OrderID, slot.Randomness); err != nil {
 					log.Error().Err(err).Int("slot", slot.Index).Msg("challenge response failed")
 				}
+
+				n.inFlightSlots.Delete(slot.Index)
 			}
 		}()
 	}
@@ -432,7 +444,15 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	}
 	proveDur := time.Since(proveStart)
 
-	// 4. Submit proof on-chain
+	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
+	freshSlot, err := n.chain.GetSlotInfo(ctx, slotIndex)
+	if err != nil {
+		log.Warn().Err(err).Int("slot", slotIndex).Msg("pre-submit slot check failed, submitting anyway")
+	} else if freshSlot.Randomness == nil || freshSlot.Randomness.Cmp(randomness) != 0 {
+		return fmt.Errorf("slot %d randomness changed during proving, skipping stale proof", slotIndex)
+	}
+
+	// 5. Submit proof on-chain
 	receipt, err := n.chain.SubmitProof(ctx, slotIndex, result.SolidityProof, result.Commitment)
 	if err != nil {
 		return fmt.Errorf("submit proof: %w", err)
@@ -633,7 +653,10 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				continue
 			}
 
-			fileData, err := n.ipfs.CatWithRetry(ctx, ref)
+			// Use a bounded timeout so a slow/unreachable file doesn't stall the loop
+			fetchCtx, fetchCancel := context.WithTimeout(ctx, 60*time.Second)
+			fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
+			fetchCancel()
 			if err != nil {
 				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file after retries")
 				continue
@@ -671,14 +694,19 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Pin root CID in IPFS (pins entire DAG even if order uses a subpath)
-			// then advertise as provider on the DHT so other peers can discover us
+			// then advertise as provider on the DHT so other peers can discover us.
+			// Run async — Pin is fast but Provide streams NDJSON and can take 30s+.
 			if n.cfg.IPFS.PinFiles {
 				rootCID := extractRootCID(order.URI)
-				if err := n.ipfs.Pin(ctx, rootCID); err != nil {
-					log.Warn().Err(err).Str("cid", rootCID).Msg("pin failed (non-fatal)")
-				} else if err := n.ipfs.Provide(ctx, rootCID); err != nil {
-					log.Warn().Err(err).Str("cid", rootCID).Msg("dht provide failed (non-fatal)")
-				}
+				go func(cid string) {
+					bgCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+					defer cancel()
+					if err := n.ipfs.Pin(bgCtx, cid); err != nil {
+						log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
+					} else if err := n.ipfs.Provide(bgCtx, cid); err != nil {
+						log.Warn().Err(err).Str("cid", cid).Msg("dht provide failed (non-fatal)")
+					}
+				}(rootCID)
 			}
 
 			// Cache Merkle tree for future challenge responses
