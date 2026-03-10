@@ -445,7 +445,7 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	// 3. Slow path: full file download
 	if result == nil {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-		fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
+		fileData, err := n.ipfs.CatChunked(fetchCtx, ref)
 		fetchCancel()
 		if err != nil {
 			return fmt.Errorf("ipfs cat %s: %w", ref, err)
@@ -746,9 +746,9 @@ func (n *Node) checkOrders(ctx context.Context) error {
 			}
 
 			// Size-proportional timeout: base 2 min + 1s per MB (assumes ≥1 MB/s).
-			// The per-read idle timeout in the IPFS client catches actual hangs faster.
+			// CatChunked downloads in 1 MB segments with per-segment retry.
 			fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-			fileData, err := n.ipfs.CatWithRetry(fetchCtx, ref)
+			fileData, err := n.ipfs.CatChunked(fetchCtx, ref)
 			fetchCancel()
 			if err != nil {
 				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file after retries")

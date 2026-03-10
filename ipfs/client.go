@@ -225,6 +225,50 @@ func (c *Client) CatRangeWithRetry(ctx context.Context, cid string, offset, leng
 	return c.withRetry(ctx, func() ([]byte, error) { return c.CatRange(ctx, cid, offset, length) })
 }
 
+// downloadSegmentSize is the chunk size for segmented downloads.
+// 1 MB balances request overhead (~1024 requests for 1 GB) against
+// retry granularity (only re-download the failed 1 MB, not the whole file).
+const downloadSegmentSize int64 = 1024 * 1024
+
+// CatChunked downloads a CID in sequential 1 MB segments, retrying each
+// independently. Much more resilient than a monolithic Cat for large files:
+// if the connection drops at 500 MB, only the current 1 MB segment is retried
+// instead of restarting the entire download.
+func (c *Client) CatChunked(ctx context.Context, cid string) ([]byte, error) {
+	var result bytes.Buffer
+	offset := int64(0)
+
+	for {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		data, err := c.CatRangeWithRetry(ctx, cid, offset, downloadSegmentSize)
+		if err != nil {
+			return nil, fmt.Errorf("offset %d: %w", offset, err)
+		}
+		if len(data) == 0 {
+			break
+		}
+		result.Write(data)
+		offset += int64(len(data))
+
+		// Log progress for large downloads (every 100 MB)
+		if offset%(100*1024*1024) == 0 {
+			log.Debug().Int64("bytes", offset).Msg("ipfs chunked download progress")
+		}
+
+		if int64(len(data)) < downloadSegmentSize {
+			break // last segment
+		}
+	}
+
+	if result.Len() > 1024*1024 {
+		log.Debug().Int("bytes", result.Len()).Msg("ipfs chunked download complete")
+	}
+	return result.Bytes(), nil
+}
+
 // addResponse is the JSON response from /api/v0/add.
 type addResponse struct {
 	Hash string `json:"Hash"`
