@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -63,6 +64,7 @@ func (n *Node) startControlSocket(ctx context.Context) func() {
 
 func (n *Node) handleControlConn(conn net.Conn) {
 	defer conn.Close()
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	scanner := bufio.NewScanner(conn)
 	if !scanner.Scan() {
 		return

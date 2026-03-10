@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/rs/zerolog/log"
 )
@@ -52,16 +53,16 @@ func (n *Node) checkNodeHealth(ctx context.Context) {
 }
 
 // detectOrderChanges compares current on-chain orders against the previous
-// snapshot to detect cancellations and removals. Tree cache cleanup is
-// handled by the existing pruneStaleCache in the same maintenance cycle.
+// snapshot to detect cancellations and removals. Returns the current order
+// IDs so callers (e.g. pruneStaleCache) can reuse them without a duplicate RPC.
 //
 // prevOrders maps orderID → rootCID so we can unpin even after the order
 // has been purged from chain state.
-func (n *Node) detectOrderChanges(ctx context.Context) {
+func (n *Node) detectOrderChanges(ctx context.Context) []*big.Int {
 	orders, err := n.chain.GetNodeOrders(ctx)
 	if err != nil {
 		log.Warn().Err(err).Msg("health: failed to get node orders")
-		return
+		return nil
 	}
 
 	// Build current snapshot: orderID → rootCID.
@@ -92,7 +93,7 @@ func (n *Node) detectOrderChanges(ctx context.Context) {
 		if err := n.store.SaveOrderMap(currentSet); err != nil {
 			log.Warn().Err(err).Msg("health: failed to persist initial order map")
 		}
-		return
+		return orders
 	}
 
 	// Detect removed orders (were in prev, not in current) and unpin using
@@ -120,4 +121,5 @@ func (n *Node) detectOrderChanges(ctx context.Context) {
 	if err := n.store.SaveOrderMap(currentSet); err != nil {
 		log.Warn().Err(err).Msg("health: failed to persist order map")
 	}
+	return orders
 }

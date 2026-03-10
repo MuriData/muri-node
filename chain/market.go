@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sync"
 
 	"github.com/MuriData/muri-node/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -63,37 +64,67 @@ func (c *Client) GetActiveOrdersPage(ctx context.Context, offset, limit uint64) 
 }
 
 // GetOrderDetails returns order details for the given order ID.
+// The three independent RPC calls run in parallel for lower latency.
 func (c *Client) GetOrderDetails(ctx context.Context, orderID *big.Int) (*types.OrderInfo, error) {
-	d, err := c.Market.GetOrderDetails(c.callOpts(ctx), orderID)
-	if err != nil {
-		return nil, fmt.Errorf("getOrderDetails(%s): %w", orderID, err)
+	var (
+		wg       sync.WaitGroup
+		dErr     error
+		fErr     error
+		priceErr error
+
+		info  types.OrderInfo
+		price *big.Int
+	)
+
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		d, err := c.Market.GetOrderDetails(c.callOpts(ctx), orderID)
+		if err != nil {
+			dErr = fmt.Errorf("getOrderDetails(%s): %w", orderID, err)
+			return
+		}
+		info.Owner = d.Owner
+		info.URI = d.Uri
+		info.RootHash = d.Root
+		info.NumChunks = d.NumChunks
+		info.Periods = d.Periods
+		info.Replicas = d.Replicas
+		info.Filled = d.Filled
+	}()
+	go func() {
+		defer wg.Done()
+		f, err := c.Market.GetOrderFinancials(c.callOpts(ctx), orderID)
+		if err != nil {
+			fErr = fmt.Errorf("getOrderFinancials(%s): %w", orderID, err)
+			return
+		}
+		info.Escrow = f.Escrow
+		info.StartPeriod = f.StartPeriod
+	}()
+	go func() {
+		defer wg.Done()
+		var err error
+		price, err = c.Market.GetOrderPrice(c.callOpts(ctx), orderID)
+		if err != nil {
+			priceErr = fmt.Errorf("getOrderPrice(%s): %w", orderID, err)
+		}
+	}()
+	wg.Wait()
+
+	if dErr != nil {
+		return nil, dErr
+	}
+	if fErr != nil {
+		return nil, fErr
+	}
+	if priceErr != nil {
+		return nil, priceErr
 	}
 
-	f, err := c.Market.GetOrderFinancials(c.callOpts(ctx), orderID)
-	if err != nil {
-		return nil, fmt.Errorf("getOrderFinancials(%s): %w", orderID, err)
-	}
-
-	// Use the on-chain getOrderPrice view for the authoritative price per chunk per period.
-	// This is stored separately and does not change as escrow is drawn down by rewards.
-	price, err := c.Market.GetOrderPrice(c.callOpts(ctx), orderID)
-	if err != nil {
-		return nil, fmt.Errorf("getOrderPrice(%s): %w", orderID, err)
-	}
-
-	return &types.OrderInfo{
-		ID:          orderID,
-		Owner:       d.Owner,
-		URI:         d.Uri,
-		RootHash:    d.Root,
-		NumChunks:   d.NumChunks,
-		Periods:     d.Periods,
-		Replicas:    d.Replicas,
-		Filled:      d.Filled,
-		Price:       price,
-		Escrow:      f.Escrow,
-		StartPeriod: f.StartPeriod,
-	}, nil
+	info.ID = orderID
+	info.Price = price
+	return &info, nil
 }
 
 // GetClaimableRewards returns the claimable reward amount for this node.

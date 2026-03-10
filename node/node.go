@@ -38,6 +38,10 @@ func deriveExecutionRandomness(fileRoot, publicKey *big.Int) *big.Int {
 	return r
 }
 
+// fetchCooldown is how long a CID is skipped after a fetch failure in the order loop.
+// Prevents repeatedly blocking the loop on the same unreachable file.
+const fetchCooldown = 10 * time.Minute
+
 // Node is the MuriData storage provider daemon.
 type Node struct {
 	cfg       *config.Config
@@ -62,6 +66,11 @@ type Node struct {
 	// inFlightSlots tracks which challenge slots have an in-flight response.
 	// Prevents duplicate goroutines from responding to the same slot concurrently.
 	inFlightSlots sync.Map // slot index (int) → true
+
+	// fetchFailures tracks CIDs that recently failed to download.
+	// Maps CID → time of failure. Entries older than fetchCooldown are retried.
+	// Prevents the order loop from repeatedly blocking on the same unreachable file.
+	fetchFailures sync.Map // CID string → time.Time
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -305,19 +314,36 @@ func (n *Node) challengeLoopEvents(ctx context.Context) error {
 // is mutex-serialized.
 const challengeWorkers = 2
 
-// checkChallenges inspects all 5 slots, collects those targeting this node,
+// checkChallenges inspects all slots, collects those targeting this node,
 // sorts by deadline (most urgent first), and dispatches them concurrently.
 func (n *Node) checkChallenges(ctx context.Context) error {
-	slots, err := n.chain.GetAllSlotInfo(ctx)
-	if err != nil {
-		return fmt.Errorf("get slot info: %w", err)
+	// Fetch slot info and block number in parallel — independent RPCs.
+	var (
+		slots    []types.ChallengeSlotInfo
+		slotsErr error
+		blockNum uint64
+		blockErr error
+		wg       sync.WaitGroup
+	)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		slots, slotsErr = n.chain.GetAllSlotInfo(ctx)
+	}()
+	go func() {
+		defer wg.Done()
+		blockNum, blockErr = n.chain.BlockNumber(ctx)
+	}()
+	wg.Wait()
+
+	if slotsErr != nil {
+		return fmt.Errorf("get slot info: %w", slotsErr)
+	}
+	if blockErr != nil {
+		return fmt.Errorf("get block number: %w", blockErr)
 	}
 
 	myAddr := n.chain.Address()
-	blockNum, err := n.chain.BlockNumber(ctx)
-	if err != nil {
-		return fmt.Errorf("get block number: %w", err)
-	}
 
 	// Collect slots that need a response.
 	var tasks []types.ChallengeSlotInfo
@@ -340,7 +366,7 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 		return tasks[i].DeadlineBlock.Cmp(tasks[j].DeadlineBlock) < 0
 	})
 
-	n.dispatchChallenges(ctx, tasks, blockNum)
+	go n.dispatchChallenges(ctx, tasks, blockNum)
 	return nil
 }
 
@@ -635,7 +661,21 @@ func (n *Node) orderLoopEvents(ctx context.Context) error {
 	}
 }
 
-// checkOrders finds and claims eligible orders.
+// orderCandidate is an order that passed fast eligibility checks and is
+// ready for the slow fetch → verify → prove → execute pipeline.
+type orderCandidate struct {
+	id      *big.Int
+	order   *types.OrderInfo
+	ref     string
+	rootCID string
+}
+
+// orderWorkers controls how many orders are fetched/processed concurrently.
+// 3 provides good pipeline utilization: one fetching from IPFS, one proving
+// (mutex-serialized), one executing on-chain.
+const orderWorkers = 3
+
+// checkOrders finds eligible orders and processes them concurrently.
 func (n *Node) checkOrders(ctx context.Context) error {
 	if n.paused.Load() {
 		log.Debug().Msg("order check skipped (paused)")
@@ -652,14 +692,12 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		return fmt.Errorf("get node info: %w", err)
 	}
 
-	// Apply local capacity cap if configured
 	capacity := info.Capacity
 	maxCap := n.cfg.Storage.MaxCapacityChunks()
 	if maxCap > 0 && maxCap < capacity {
 		capacity = maxCap
 	}
 
-	// Guard against uint64 underflow after slashing reduces capacity below used
 	if info.Used > capacity {
 		log.Warn().
 			Uint64("capacity", capacity).
@@ -674,7 +712,6 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		return nil
 	}
 
-	// Get existing node orders to avoid duplicates
 	existingOrders, err := n.chain.GetNodeOrders(ctx)
 	if err != nil {
 		return fmt.Errorf("get node orders: %w", err)
@@ -684,19 +721,59 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		existing[oid.String()] = true
 	}
 
-	filled := 0
 	maxToFill := n.cfg.AutoExecute.MaxOrdersToFill
 	if maxToFill == 0 {
 		maxToFill = 5
 	}
 
-	// Paginate through active orders
+	// Phase 1: collect eligible candidates (fast — only chain queries + filtering).
+	candidates := n.collectCandidates(ctx, existing, availableCapacity, maxToFill)
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	// Phase 2: process candidates concurrently.
+	// Reserve capacity upfront so we don't overcommit when dispatching workers.
+	sem := make(chan struct{}, orderWorkers)
+	var wg sync.WaitGroup
+
+	reserved := uint64(0)
+	dispatched := 0
+	for _, cand := range candidates {
+		if dispatched >= maxToFill {
+			break
+		}
+		if reserved+uint64(cand.order.NumChunks) > availableCapacity {
+			continue
+		}
+		reserved += uint64(cand.order.NumChunks)
+		dispatched++
+
+		wg.Add(1)
+		sem <- struct{}{} // bound concurrency
+		go func(c orderCandidate) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			n.processCandidate(ctx, c)
+		}(cand)
+	}
+	wg.Wait()
+
+	return nil
+}
+
+// collectCandidates paginates through active orders and returns those that
+// pass all fast eligibility checks (price, capacity, not full, not on cooldown).
+func (n *Node) collectCandidates(ctx context.Context, existing map[string]bool, availableCapacity uint64, maxCandidates int) []orderCandidate {
+	var candidates []orderCandidate
+
 	const pageSize uint64 = 50
 	var offset uint64
 	for {
 		page, total, err := n.chain.GetActiveOrdersPage(ctx, offset, pageSize)
 		if err != nil {
-			return fmt.Errorf("get active orders page(%d): %w", offset, err)
+			log.Error().Err(err).Uint64("offset", offset).Msg("get active orders page failed")
+			break
 		}
 		if offset == 0 {
 			log.Info().
@@ -707,7 +784,7 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		}
 
 		for _, orderID := range page {
-			if filled >= maxToFill {
+			if len(candidates) >= maxCandidates {
 				break
 			}
 			if existing[orderID.String()] {
@@ -720,105 +797,39 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				continue
 			}
 
-			// Check if order is full
 			if order.Filled >= order.Replicas {
-				log.Debug().Str("orderID", orderID.String()).Uint8("filled", order.Filled).Uint8("replicas", order.Replicas).Msg("skip: order full")
 				continue
 			}
-
-			// Check capacity
 			if uint64(order.NumChunks) > availableCapacity {
-				log.Debug().Str("orderID", orderID.String()).Uint64("chunks", uint64(order.NumChunks)).Uint64("available", availableCapacity).Msg("skip: insufficient capacity")
 				continue
 			}
-
-			// Check price threshold (Price is populated by GetOrderDetails)
 			if n.cfg.Storage.MinPrice > 0 && order.Price != nil && order.Price.Cmp(new(big.Int).SetUint64(n.cfg.Storage.MinPrice)) < 0 {
-				log.Debug().Str("orderID", orderID.String()).Str("price", order.Price.String()).Uint64("minPrice", n.cfg.Storage.MinPrice).Msg("skip: price below threshold")
 				continue
 			}
 
-			// Verify file integrity before committing
 			ref := extractIPFSRef(order.URI)
 			if ref == "" {
-				log.Warn().Str("orderID", orderID.String()).Str("uri", order.URI).Msg("skip: no CID in URI")
 				continue
 			}
 
-			// Size-proportional timeout: base 2 min + 1s per MB (assumes ≥1 MB/s).
-			// CatChunked downloads in 1 MB segments with per-segment retry.
-			fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-			fileData, err := n.ipfs.CatChunked(fetchCtx, ref)
-			fetchCancel()
-			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Str("ref", ref).Msg("skip: can't fetch file after retries")
-				continue
+			rootCID := extractRootCID(order.URI)
+			if failTime, ok := n.fetchFailures.Load(rootCID); ok {
+				if time.Since(failTime.(time.Time)) < fetchCooldown {
+					log.Debug().Str("orderID", orderID.String()).Msg("skip: CID on fetch cooldown")
+					continue
+				}
+				n.fetchFailures.Delete(rootCID)
 			}
 
-			// Build SMT and verify root matches on-chain
-			smt, chunks, err := n.prover.BuildSMT(fileData)
-			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: can't build SMT")
-				continue
-			}
-			if order.RootHash == nil || smt.Root.Cmp(order.RootHash) != 0 {
-				log.Warn().
-					Str("orderID", orderID.String()).
-					Str("expected", fmt.Sprintf("0x%x", order.RootHash)).
-					Str("computed", fmt.Sprintf("0x%x", smt.Root)).
-					Msg("skip: root hash mismatch")
-				continue
-			}
-
-			// Generate PoI proof for execution (proves data possession)
-			publicKey := prover.PublicKeyFromSecret(n.secretKey)
-			randomness := deriveExecutionRandomness(order.RootHash, publicKey)
-			proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
-			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("skip: proof generation failed")
-				continue
-			}
-
-			// Execute order on-chain with proof
-			receipt, err := n.chain.ExecuteOrder(ctx, orderID, proofResult.SolidityProof, proofResult.Commitment)
-			if err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("execute order failed")
-				continue
-			}
-
-			// Pin root CID in IPFS (pins entire DAG even if order uses a subpath)
-			// then advertise as provider on the DHT so other peers can discover us.
-			// Run async — Pin is fast but Provide streams NDJSON and can take 30s+.
-			if n.cfg.IPFS.PinFiles {
-				rootCID := extractRootCID(order.URI)
-				go func(cid string) {
-					bgCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-					defer cancel()
-					if err := n.ipfs.Pin(bgCtx, cid); err != nil {
-						log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
-					} else if err := n.ipfs.Provide(bgCtx, cid); err != nil {
-						log.Warn().Err(err).Str("cid", cid).Msg("dht provide failed (non-fatal)")
-					}
-				}(rootCID)
-			}
-
-			// Cache Merkle tree for future challenge responses
-			if err := n.store.SaveTree(orderID, smt); err != nil {
-				log.Warn().Err(err).Str("orderID", orderID.String()).Msg("cache tree failed (non-fatal)")
-			}
-
-			availableCapacity -= uint64(order.NumChunks)
-			filled++
-
-			log.Info().
-				Str("orderID", orderID.String()).
-				Str("tx", receipt.TxHash.Hex()).
-				Uint32("chunks", order.NumChunks).
-				Msg("order claimed")
+			candidates = append(candidates, orderCandidate{
+				id:      orderID,
+				order:   order,
+				ref:     ref,
+				rootCID: rootCID,
+			})
 		}
 
-		// Stop paginating if we've filled enough or reached the end
-		if filled >= maxToFill {
+		if len(candidates) >= maxCandidates {
 			break
 		}
 		offset += pageSize
@@ -827,7 +838,72 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		}
 	}
 
-	return nil
+	return candidates
+}
+
+// processCandidate handles a single order: fetch → verify → prove → execute.
+// Runs concurrently from checkOrders; errors are logged, not returned.
+func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
+	fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(cand.order.NumChunks))
+	fileData, err := n.ipfs.CatChunked(fetchCtx, cand.ref)
+	fetchCancel()
+	if err != nil {
+		n.fetchFailures.Store(cand.rootCID, time.Now())
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Str("ref", cand.ref).Msg("skip: can't fetch file (cooldown 10m)")
+		return
+	}
+
+	smt, chunks, err := n.prover.BuildSMT(fileData)
+	if err != nil {
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: can't build SMT")
+		return
+	}
+	if cand.order.RootHash == nil || smt.Root.Cmp(cand.order.RootHash) != 0 {
+		log.Warn().
+			Str("orderID", cand.id.String()).
+			Str("expected", fmt.Sprintf("0x%x", cand.order.RootHash)).
+			Str("computed", fmt.Sprintf("0x%x", smt.Root)).
+			Msg("skip: root hash mismatch")
+		return
+	}
+
+	publicKey := prover.PublicKeyFromSecret(n.secretKey)
+	randomness := deriveExecutionRandomness(cand.order.RootHash, publicKey)
+	proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+	if err != nil {
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: proof generation failed")
+		return
+	}
+
+	receipt, err := n.chain.ExecuteOrder(ctx, cand.id, proofResult.SolidityProof, proofResult.Commitment)
+	if err != nil {
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("execute order failed")
+		return
+	}
+
+	// Pin + provide in background
+	if n.cfg.IPFS.PinFiles {
+		go func(cid string) {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
+			if err := n.ipfs.Pin(bgCtx, cid); err != nil {
+				log.Warn().Err(err).Str("cid", cid).Msg("pin failed (non-fatal)")
+			} else if err := n.ipfs.Provide(bgCtx, cid); err != nil {
+				log.Warn().Err(err).Str("cid", cid).Msg("dht provide failed (non-fatal)")
+			}
+		}(cand.rootCID)
+	}
+
+	// Cache SMT for future challenge responses
+	if err := n.store.SaveTree(cand.id, smt); err != nil {
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("cache tree failed (non-fatal)")
+	}
+
+	log.Info().
+		Str("orderID", cand.id.String()).
+		Str("tx", receipt.TxHash.Hex()).
+		Uint32("chunks", cand.order.NumChunks).
+		Msg("order claimed")
 }
 
 // maintenanceLoop performs periodic housekeeping.
@@ -855,7 +931,7 @@ func (n *Node) maintenanceLoop(ctx context.Context) error {
 func (n *Node) runMaintenance(ctx context.Context) {
 	// ── Health check: detect deregistration / slashing ──
 	n.checkNodeHealth(ctx)
-	n.detectOrderChanges(ctx)
+	activeOrders := n.detectOrderChanges(ctx)
 
 	if n.deregistered.Load() {
 		return
@@ -913,20 +989,20 @@ func (n *Node) runMaintenance(ctx context.Context) {
 		}
 	}
 
-	// Prune stale SMT caches for orders we no longer serve
-	n.pruneStaleCache(ctx)
+	// Prune stale SMT caches for orders we no longer serve.
+	// Reuse the order list from detectOrderChanges to avoid a duplicate RPC.
+	n.pruneStaleCache(activeOrders)
 }
 
 // pruneStaleCache removes cached SMT files for orders the node is no longer serving.
-func (n *Node) pruneStaleCache(ctx context.Context) {
-	activeOrders, err := n.chain.GetNodeOrders(ctx)
-	if err != nil {
-		log.Warn().Err(err).Msg("prune: failed to get node orders")
+// If orders is nil (detectOrderChanges failed), the prune is skipped.
+func (n *Node) pruneStaleCache(orders []*big.Int) {
+	if orders == nil {
 		return
 	}
 
-	activeSet := make(map[string]bool, len(activeOrders))
-	for _, oid := range activeOrders {
+	activeSet := make(map[string]bool, len(orders))
+	for _, oid := range orders {
 		activeSet[oid.String()] = true
 	}
 

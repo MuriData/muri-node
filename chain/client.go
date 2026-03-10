@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
 	"time"
 
 	"encoding/hex"
@@ -35,6 +36,10 @@ type Client struct {
 	// WebSocket client and filterer for event subscriptions (nil if listen_mode == "poll").
 	wsEth    *ethclient.Client
 	Filterer *bindings.FileMarketFilterer
+
+	// txMu serializes SendTx calls so concurrent callers (challenge loop,
+	// maintenance loop) don't race on nonce management.
+	txMu sync.Mutex
 }
 
 // NewClient connects to the chain and instantiates contract bindings.
@@ -157,7 +162,11 @@ func (c *Client) transactOpts(ctx context.Context) (*bind.TransactOpts, error) {
 // fn is called with TransactOpts and should return the transaction.
 // Retries reuse the same nonce so the replacement tx overwrites the stuck
 // original in the mempool instead of queuing behind it.
+// Serialized via txMu to prevent concurrent callers from racing on nonces.
 func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types.Transaction, error)) (*types.Receipt, error) {
+	c.txMu.Lock()
+	defer c.txMu.Unlock()
+
 	var lastErr error
 	maxRetries := c.cfg.MaxRetries
 	if maxRetries == 0 {
