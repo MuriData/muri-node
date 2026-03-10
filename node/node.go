@@ -67,6 +67,10 @@ type Node struct {
 	// Prevents duplicate goroutines from responding to the same slot concurrently.
 	inFlightSlots sync.Map // slot index (int) → true
 
+	// inFlightOrders tracks which orders have an in-flight processCandidate.
+	// Prevents duplicate workers from processing the same order across poll ticks.
+	inFlightOrders sync.Map // orderID string → true
+
 	// fetchFailures tracks CIDs that recently failed to download.
 	// Maps CID → time of failure. Entries older than fetchCooldown are retried.
 	// Prevents the order loop from repeatedly blocking on the same unreachable file.
@@ -675,6 +679,11 @@ type orderCandidate struct {
 // (mutex-serialized), one executing on-chain.
 const orderWorkers = 3
 
+// orderSem is a package-level semaphore shared across poll ticks so the order
+// loop is not blocked by slow fetches — new ticks can dispatch fresh candidates
+// into free worker slots while previous ones are still running.
+var orderSem = make(chan struct{}, orderWorkers)
+
 // checkOrders finds eligible orders and processes them concurrently.
 func (n *Node) checkOrders(ctx context.Context) error {
 	if n.paused.Load() {
@@ -732,33 +741,41 @@ func (n *Node) checkOrders(ctx context.Context) error {
 		return nil
 	}
 
-	// Phase 2: process candidates concurrently.
-	// Reserve capacity upfront so we don't overcommit when dispatching workers.
-	sem := make(chan struct{}, orderWorkers)
-	var wg sync.WaitGroup
-
-	reserved := uint64(0)
+	// Phase 2: dispatch candidates into the shared worker pool.
+	// Non-blocking: if all workers are busy, remaining candidates are skipped
+	// and will be picked up on the next poll tick. This prevents a slow fetch
+	// from blocking the entire order loop.
 	dispatched := 0
 	for _, cand := range candidates {
 		if dispatched >= maxToFill {
 			break
 		}
-		if reserved+uint64(cand.order.NumChunks) > availableCapacity {
+
+		// Skip if this order is already being processed from a previous tick
+		if _, loaded := n.inFlightOrders.LoadOrStore(cand.id.String(), true); loaded {
 			continue
 		}
-		reserved += uint64(cand.order.NumChunks)
-		dispatched++
 
-		wg.Add(1)
-		sem <- struct{}{} // bound concurrency
-		go func(c orderCandidate) {
-			defer wg.Done()
-			defer func() { <-sem }()
-			n.processCandidate(ctx, c)
-		}(cand)
+		// Try to acquire a worker slot without blocking
+		select {
+		case orderSem <- struct{}{}:
+			dispatched++
+			go func(c orderCandidate) {
+				defer func() { <-orderSem }()
+				defer n.inFlightOrders.Delete(c.id.String())
+				n.processCandidate(ctx, c)
+			}(cand)
+		default:
+			// All workers busy — this candidate will be retried next tick
+			n.inFlightOrders.Delete(cand.id.String())
+			log.Debug().Str("orderID", cand.id.String()).Msg("workers busy, deferring to next tick")
+			break
+		}
 	}
-	wg.Wait()
 
+	if dispatched > 0 {
+		log.Info().Int("dispatched", dispatched).Msg("order candidates dispatched")
+	}
 	return nil
 }
 
@@ -787,7 +804,12 @@ func (n *Node) collectCandidates(ctx context.Context, existing map[string]bool, 
 			if len(candidates) >= maxCandidates {
 				break
 			}
-			if existing[orderID.String()] {
+			key := orderID.String()
+			if existing[key] {
+				continue
+			}
+			// Skip orders already being processed from a previous tick
+			if _, ok := n.inFlightOrders.Load(key); ok {
 				continue
 			}
 
