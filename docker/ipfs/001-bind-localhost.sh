@@ -65,12 +65,13 @@ ipfs config --json Routing '{
   }
 }'
 
-# ── Reprovider: re-announce all pinned content every 12h ──────────────
+# ── Provide: re-announce all pinned content every 12h ─────────────────
 # Default is 22h. Shorter interval keeps provider records fresh in the
 # DHT (records expire after ~24h). "pinned" strategy only announces CIDs
 # we've explicitly pinned (our stored files), not transient cache blocks.
-ipfs config --json Reprovider.Interval '"12h"'
-ipfs config --json Reprovider.Strategy '"pinned"'
+# (Kubo 0.33+: Reprovider fields migrated to Provide)
+ipfs config --json Provide.Strategy '"pinned"'
+ipfs config --json Provide.DHT.Interval '"12h"'
 
 # ── Swarm: connection manager tuning ──────────────────────────────────
 # Storage nodes benefit from more connections for better block exchange
