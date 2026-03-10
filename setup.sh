@@ -95,17 +95,17 @@ install_docker() {
                 sudo apt-get update -qq
                 sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
             elif command -v dnf &>/dev/null; then
+                # Fedora/CentOS/RHEL/Rocky/Alma
                 sudo dnf -y install dnf-plugins-core
-                sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+                DNF_DISTRO=$(. /etc/os-release && echo "$ID")
+                case "$DNF_DISTRO" in
+                    centos|rhel|rocky|almalinux) DNF_DISTRO="centos" ;;
+                    fedora) DNF_DISTRO="fedora" ;;
+                    *) DNF_DISTRO="centos" ;;
+                esac
+                sudo dnf config-manager --add-repo "https://download.docker.com/linux/${DNF_DISTRO}/docker-ce.repo"
                 sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-                sudo systemctl start docker
-                sudo systemctl enable docker
-            elif command -v yum &>/dev/null; then
-                sudo yum install -y yum-utils
-                sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-                sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-                sudo systemctl start docker
-                sudo systemctl enable docker
+                sudo systemctl enable --now docker
             else
                 fail "Unsupported Linux distro. Install Docker manually: https://docs.docker.com/engine/install/"
             fi
