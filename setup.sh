@@ -95,15 +95,12 @@ install_docker() {
                 sudo apt-get update -qq
                 sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
             elif command -v dnf &>/dev/null; then
-                # Fedora/CentOS/RHEL/Rocky/Alma
+                # CentOS Stream / RHEL / Rocky / Alma / Fedora
+                # Always use the centos repo — it works across all RHEL-family
+                # distros and CentOS Stream. The fedora repo only carries recent
+                # Fedora releases and breaks on RHEL-derived $releasever values.
                 sudo dnf -y install dnf-plugins-core
-                DNF_DISTRO=$(. /etc/os-release && echo "$ID")
-                case "$DNF_DISTRO" in
-                    centos|rhel|rocky|almalinux) DNF_DISTRO="centos" ;;
-                    fedora) DNF_DISTRO="fedora" ;;
-                    *) DNF_DISTRO="centos" ;;
-                esac
-                sudo dnf config-manager --add-repo "https://download.docker.com/linux/${DNF_DISTRO}/docker-ce.repo"
+                sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
                 sudo dnf -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
                 sudo systemctl enable --now docker
             else
