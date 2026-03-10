@@ -27,7 +27,8 @@ func (c *Client) apiEndpoint(path, arg string) string {
 // Client is an HTTP client for the Kubo IPFS API.
 type Client struct {
 	apiURL      string
-	http        *http.Client
+	http        *http.Client // normal ops: 30s response header timeout
+	httpBulk    *http.Client // bulk downloads: 2min — Kubo may need to discover/fetch blocks from remote peers
 	idleTimeout time.Duration
 	maxRetries  int
 	baseDelay   time.Duration
@@ -54,9 +55,16 @@ func NewClient(cfg config.IPFSConfig) *Client {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.ResponseHeaderTimeout = timeout
 
+	// Bulk transport: longer timeout for first-time downloads of large files.
+	// Kubo may need to traverse the DHT, discover providers, and fetch blocks
+	// from distant peers — 30s is often not enough for cold blocks.
+	transportBulk := http.DefaultTransport.(*http.Transport).Clone()
+	transportBulk.ResponseHeaderTimeout = 2 * time.Minute
+
 	return &Client{
 		apiURL:      cfg.APIURL,
 		http:        &http.Client{Transport: transport},
+		httpBulk:    &http.Client{Transport: transportBulk},
 		idleTimeout: timeout,
 		maxRetries:  maxRetries,
 		baseDelay:   baseDelay,
@@ -162,6 +170,11 @@ func readAllIdleTimeout(ctx context.Context, body io.ReadCloser, idle time.Durat
 // CatRange fetches a byte range from a CID using Kubo's offset/length parameters.
 // Only the IPFS DAG blocks covering the requested range are retrieved from the network.
 func (c *Client) CatRange(ctx context.Context, cid string, offset, length int64) ([]byte, error) {
+	return c.catRangeWith(ctx, c.http, cid, offset, length)
+}
+
+// catRangeWith is the internal implementation of CatRange, parameterized by HTTP client.
+func (c *Client) catRangeWith(ctx context.Context, httpClient *http.Client, cid string, offset, length int64) ([]byte, error) {
 	params := url.Values{
 		"arg":    {cid},
 		"offset": {fmt.Sprintf("%d", offset)},
@@ -173,7 +186,7 @@ func (c *Client) CatRange(ctx context.Context, cid string, offset, length int64)
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	resp, err := c.http.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("ipfs cat range: %w", err)
 	}
@@ -231,7 +244,10 @@ func (c *Client) CatRangeWithRetry(ctx context.Context, cid string, offset, leng
 const downloadSegmentSize int64 = 1024 * 1024
 
 // CatChunked downloads a CID in sequential 1 MB segments, retrying each
-// independently. Much more resilient than a monolithic Cat for large files:
+// independently. Uses the bulk HTTP client (2 min response header timeout)
+// so Kubo has time to discover and fetch blocks from remote peers.
+//
+// Much more resilient than a monolithic Cat for large files:
 // if the connection drops at 500 MB, only the current 1 MB segment is retried
 // instead of restarting the entire download.
 func (c *Client) CatChunked(ctx context.Context, cid string) ([]byte, error) {
@@ -243,7 +259,10 @@ func (c *Client) CatChunked(ctx context.Context, cid string) ([]byte, error) {
 			return nil, ctx.Err()
 		}
 
-		data, err := c.CatRangeWithRetry(ctx, cid, offset, downloadSegmentSize)
+		// Use bulk client (2 min response header timeout) with per-segment retry.
+		data, err := c.withRetry(ctx, func() ([]byte, error) {
+			return c.catRangeWith(ctx, c.httpBulk, cid, offset, downloadSegmentSize)
+		})
 		if err != nil {
 			return nil, fmt.Errorf("offset %d: %w", offset, err)
 		}

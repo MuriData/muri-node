@@ -978,16 +978,15 @@ func extractRootCID(uri string) string {
 }
 
 // fetchTimeout computes a generous IPFS fetch deadline based on file size.
-// Base of 2 minutes + 1 second per MB assumes a minimum ~1 MB/s throughput.
-// The per-read idle timeout in the IPFS client catches actual hangs much faster;
-// this outer timeout guards against impossibly slow but technically alive transfers.
+// Base of 5 minutes + 3 seconds per MB accounts for CatChunked's per-segment
+// retry (each segment can take up to 2 min response header timeout + retries).
 func fetchTimeout(numChunks uint32) time.Duration {
 	const chunkSize = 16384 // 16 KB
 	sizeMB := uint64(numChunks) * chunkSize / (1024 * 1024)
 	if sizeMB < 1 {
 		sizeMB = 1
 	}
-	return 2*time.Minute + time.Duration(sizeMB)*time.Second
+	return 5*time.Minute + time.Duration(sizeMB)*3*time.Second
 }
 
 // loadOrBuildSMT attempts to load a cached SMT from disk, falling back to
