@@ -472,7 +472,9 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		}
 	}
 
-	// 3. Slow path: full file download
+	// 3. Slow path: download full file → build SMT → prove selectively.
+	// After SMT construction, the full file data (~1 GB) is released and only
+	// the 8 challenged chunks (~128 KB) are fetched for proof generation.
 	if result == nil {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
 		fileData, err := n.ipfs.CatChunked(fetchCtx, ref)
@@ -481,16 +483,19 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 			return fmt.Errorf("ipfs cat %s: %w", ref, err)
 		}
 
-		smt, chunks, err := n.loadOrBuildSMT(orderID, fileData, order.RootHash)
+		smt, _, err = n.loadOrBuildSMT(orderID, fileData, order.RootHash)
 		if err != nil {
 			return fmt.Errorf("build smt: %w", err)
 		}
+		// Release the full file buffer (~1 GB) before the 40s proof generation.
+		// The selective path below fetches only the 8 needed chunks (~128 KB).
+		fileData = nil //nolint:ineffassign // explicit release for GC
 
-		result, err = n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+		result, err = n.proveSelective(ctx, randomness, smt, ref)
 		if err != nil {
-			return fmt.Errorf("generate proof: %w", err)
+			return fmt.Errorf("generate proof (selective after full download): %w", err)
 		}
-		path = "full"
+		path = "full+selective"
 	}
 
 	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
@@ -875,7 +880,7 @@ func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
 		return
 	}
 
-	smt, chunks, err := n.prover.BuildSMT(fileData)
+	smt, _, err := n.prover.BuildSMT(fileData)
 	if err != nil {
 		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: can't build SMT")
 		return
@@ -889,9 +894,13 @@ func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
 		return
 	}
 
+	// Release the full file buffer before proof generation (~40s).
+	// proveSelective fetches only the 8 needed chunks (~128 KB).
+	fileData = nil //nolint:ineffassign // explicit release for GC
+
 	publicKey := prover.PublicKeyFromSecret(n.secretKey)
 	randomness := deriveExecutionRandomness(cand.order.RootHash, publicKey)
-	proofResult, err := n.prover.GenerateProofFromSMT(n.secretKey, randomness, chunks, smt)
+	proofResult, err := n.proveSelective(ctx, randomness, smt, cand.ref)
 	if err != nil {
 		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: proof generation failed")
 		return
