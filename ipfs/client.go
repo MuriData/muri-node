@@ -407,27 +407,58 @@ func (c *Client) IsPinned(ctx context.Context, cid string) (bool, error) {
 }
 
 // Provide announces to the DHT that this node can provide the given CID.
+// Uses the bulk HTTP client (2 min timeout) because DHT provide must contact
+// multiple peers across the network. Retries on transient failures.
 func (c *Client) Provide(ctx context.Context, cid string) error {
+	var lastErr error
+	for attempt := 0; attempt <= 2; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(time.Duration(attempt) * 5 * time.Second):
+			}
+		}
+
+		err := c.provideOnce(ctx, cid)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		log.Debug().Err(err).Str("cid", cid).Int("attempt", attempt+1).Msg("dht provide attempt failed")
+	}
+	return lastErr
+}
+
+func (c *Client) provideOnce(ctx context.Context, cid string) error {
 	u := c.apiEndpoint("/api/v0/dht/provide", cid)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, nil)
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
 
-	resp, err := c.http.Do(req)
+	resp, err := c.httpBulk.Do(req)
 	if err != nil {
 		return fmt.Errorf("ipfs dht provide: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Kubo streams NDJSON progress; drain it and check for errors.
-	io.Copy(io.Discard, resp.Body)
+	// Kubo streams NDJSON progress; drain it so the connection can be reused.
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("ipfs dht provide %s: status %d", cid, resp.StatusCode)
+		return fmt.Errorf("ipfs dht provide %s: status %d: %s", cid, resp.StatusCode, truncate(body, 256))
 	}
 
 	return nil
+}
+
+// truncate returns at most n bytes of b as a string, for error messages.
+func truncate(b []byte, n int) string {
+	if len(b) <= n {
+		return string(b)
+	}
+	return string(b[:n]) + "..."
 }
 
 // Ping checks connectivity to the IPFS node.
