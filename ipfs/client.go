@@ -288,6 +288,82 @@ func (c *Client) CatChunked(ctx context.Context, cid string) ([]byte, error) {
 	return result.Bytes(), nil
 }
 
+// CatChunkedTo downloads a CID in segments and calls fn for each
+// fileChunkSize-aligned chunk. The full file is never buffered — only one
+// download segment (~1 MB) plus a small carry buffer are held at a time.
+//
+// fn receives the chunk index (0-based) and the chunk data. The data slice
+// is only valid for the duration of the call — callers must copy if needed.
+// The last chunk is zero-padded to fileChunkSize.
+//
+// Returns the total number of chunks delivered to fn.
+func (c *Client) CatChunkedTo(ctx context.Context, cid string, fileChunkSize int, fn func(index int, data []byte)) (int, error) {
+	offset := int64(0)
+	chunkIndex := 0
+	var carry []byte
+
+	for {
+		if ctx.Err() != nil {
+			return 0, ctx.Err()
+		}
+
+		segment, err := c.withRetry(ctx, func() ([]byte, error) {
+			return c.catRangeWith(ctx, c.httpBulk, cid, offset, downloadSegmentSize)
+		})
+		if err != nil {
+			return 0, fmt.Errorf("offset %d: %w", offset, err)
+		}
+		if len(segment) == 0 {
+			break
+		}
+		lastSegment := int64(len(segment)) < downloadSegmentSize
+		offset += int64(len(segment))
+
+		// Prepend any carry from the previous segment
+		buf := segment
+		if len(carry) > 0 {
+			buf = append(carry, segment...)
+			carry = nil
+		}
+
+		// Deliver complete chunks
+		for len(buf) >= fileChunkSize {
+			fn(chunkIndex, buf[:fileChunkSize])
+			buf = buf[fileChunkSize:]
+			chunkIndex++
+		}
+
+		// Save leftover for next segment
+		if len(buf) > 0 {
+			carry = make([]byte, len(buf))
+			copy(carry, buf)
+		}
+
+		// Log progress for large downloads
+		if offset%(100*1024*1024) == 0 {
+			log.Debug().Int64("bytes", offset).Msg("ipfs streaming download progress")
+		}
+
+		if lastSegment {
+			break
+		}
+	}
+
+	// Handle final partial chunk (zero-padded)
+	if len(carry) > 0 {
+		padded := make([]byte, fileChunkSize)
+		copy(padded, carry)
+		fn(chunkIndex, padded)
+		chunkIndex++
+	}
+
+	if offset > 1024*1024 {
+		log.Debug().Int64("bytes", offset).Int("chunks", chunkIndex).Msg("ipfs streaming download complete")
+	}
+
+	return chunkIndex, nil
+}
+
 // addResponse is the JSON response from /api/v0/add.
 type addResponse struct {
 	Hash string `json:"Hash"`

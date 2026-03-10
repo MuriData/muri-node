@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -472,30 +473,27 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		}
 	}
 
-	// 3. Slow path: download full file → build SMT → prove selectively.
-	// After SMT construction, the full file data (~1 GB) is released and only
-	// the 8 challenged chunks (~128 KB) are fetched for proof generation.
+	// 3. Slow path: stream download → hash → build SMT → prove selectively.
+	// The full file is never buffered — chunks are hashed on the fly during
+	// download, then only the 8 challenged chunks (~128 KB) are re-fetched.
 	if result == nil {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-		fileData, err := n.ipfs.CatChunked(fetchCtx, ref)
+		smt, err = n.buildSMTStreaming(fetchCtx, ref, order.NumChunks)
 		fetchCancel()
 		if err != nil {
-			return fmt.Errorf("ipfs cat %s: %w", ref, err)
+			return fmt.Errorf("streaming build smt %s: %w", ref, err)
 		}
 
-		smt, _, err = n.loadOrBuildSMT(orderID, fileData, order.RootHash)
-		if err != nil {
-			return fmt.Errorf("build smt: %w", err)
+		// Cache for future challenge responses
+		if saveErr := n.store.SaveTree(orderID, smt); saveErr != nil {
+			log.Warn().Err(saveErr).Str("orderID", orderID.String()).Msg("cache tree failed (non-fatal)")
 		}
-		// Release the full file buffer (~1 GB) before the 40s proof generation.
-		// The selective path below fetches only the 8 needed chunks (~128 KB).
-		fileData = nil //nolint:ineffassign // explicit release for GC
 
 		result, err = n.proveSelective(ctx, randomness, smt, ref)
 		if err != nil {
-			return fmt.Errorf("generate proof (selective after full download): %w", err)
+			return fmt.Errorf("generate proof (streaming+selective): %w", err)
 		}
-		path = "full+selective"
+		path = "streaming+selective"
 	}
 
 	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
@@ -871,18 +869,14 @@ func (n *Node) collectCandidates(ctx context.Context, existing map[string]bool, 
 // processCandidate handles a single order: fetch → verify → prove → execute.
 // Runs concurrently from checkOrders; errors are logged, not returned.
 func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
+	// Stream download → hash chunks → build SMT. The full file is never
+	// buffered in memory — only ~1 MB download segments are held at a time.
 	fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(cand.order.NumChunks))
-	fileData, err := n.ipfs.CatChunked(fetchCtx, cand.ref)
+	smt, err := n.buildSMTStreaming(fetchCtx, cand.ref, cand.order.NumChunks)
 	fetchCancel()
 	if err != nil {
 		n.fetchFailures.Store(cand.rootCID, time.Now())
-		log.Warn().Err(err).Str("orderID", cand.id.String()).Str("ref", cand.ref).Msg("skip: can't fetch file (cooldown 10m)")
-		return
-	}
-
-	smt, _, err := n.prover.BuildSMT(fileData)
-	if err != nil {
-		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: can't build SMT")
+		log.Warn().Err(err).Str("orderID", cand.id.String()).Str("ref", cand.ref).Msg("skip: can't fetch/hash file (cooldown 10m)")
 		return
 	}
 	if cand.order.RootHash == nil || smt.Root.Cmp(cand.order.RootHash) != 0 {
@@ -893,10 +887,6 @@ func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
 			Msg("skip: root hash mismatch")
 		return
 	}
-
-	// Release the full file buffer before proof generation (~40s).
-	// proveSelective fetches only the 8 needed chunks (~128 KB).
-	fileData = nil //nolint:ineffassign // explicit release for GC
 
 	publicKey := prover.PublicKeyFromSecret(n.secretKey)
 	randomness := deriveExecutionRandomness(cand.order.RootHash, publicKey)
@@ -1096,40 +1086,69 @@ func fetchTimeout(numChunks uint32) time.Duration {
 	return 5*time.Minute + time.Duration(sizeMB)*3*time.Second
 }
 
-// loadOrBuildSMT attempts to load a cached SMT from disk, falling back to
-// building one from the file data. If expectedRoot is non-nil, the cached tree's
-// root is validated against it instead of rebuilding the full tree.
-func (n *Node) loadOrBuildSMT(orderID *big.Int, fileData []byte, expectedRoot *big.Int) (*merkle.SparseMerkleTree, [][]byte, error) {
-	// Always split chunks from the current file data — these chunks must be
-	// consistent with whichever SMT we return (cached or freshly built).
-	chunks := merkle.SplitIntoChunks(fileData, poi.FileSize)
-
-	// Try loading from cache
-	smt, err := n.store.LoadTree(orderID, n.prover.ZeroLeafHash())
-	if err != nil {
-		log.Warn().Err(err).Str("orderID", orderID.String()).Msg("cache load failed, rebuilding")
-		smt = nil
+// buildSMTStreaming downloads a file from IPFS and builds an SMT by hashing
+// chunks on the fly. The full file is never buffered in memory — only one
+// download segment (~1 MB) plus the leaf hashes are held at any time.
+//
+// Peak memory: ~12 MB for a 1 GB file, ~124 MB for a 10 GB file
+// (vs ~1 GB / ~10 GB with the old CatChunked + BuildSMT approach).
+func (n *Node) buildSMTStreaming(ctx context.Context, ref string, numChunks uint32) (*merkle.SparseMerkleTree, error) {
+	type hashJob struct {
+		index int
+		data  []byte
 	}
 
-	if smt != nil {
-		// Validate cached tree root against the expected on-chain root
-		if expectedRoot != nil && smt.Root.Cmp(expectedRoot) == 0 {
-			log.Debug().Str("orderID", orderID.String()).Msg("using cached SMT")
-			return smt, chunks, nil
+	jobs := make(chan hashJob, 128)
+
+	// Pre-allocate the results slice. Each index is written by exactly one
+	// worker (disjoint indices), so no synchronization is needed for writes.
+	hashCap := int(numChunks) + 1
+	hashes := make([]*big.Int, hashCap)
+
+	// Start parallel hash workers
+	workers := runtime.NumCPU()
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := range jobs {
+				if j.index < hashCap {
+					hashes[j.index] = poi.HashChunk(j.data)
+				}
+			}
+		}()
+	}
+
+	// Stream download: fetch each 16 KB chunk and dispatch for hashing.
+	// CatChunkedTo holds only ~1 MB (one download segment) at a time.
+	totalChunks, err := n.ipfs.CatChunkedTo(ctx, ref, poi.FileSize, func(index int, chunk []byte) {
+		// Copy chunk data — the slice is only valid during this callback.
+		data := make([]byte, len(chunk))
+		copy(data, chunk)
+		select {
+		case jobs <- hashJob{index: index, data: data}:
+		case <-ctx.Done():
 		}
-		log.Warn().Str("orderID", orderID.String()).Msg("cached SMT root mismatch, rebuilding")
-	}
+	})
+	close(jobs)
+	wg.Wait()
 
-	// Build from scratch
-	smt, err = merkle.GenerateSparseMerkleTree(chunks, poi.MaxTreeDepth, poi.HashChunk, n.prover.ZeroLeafHash())
 	if err != nil {
-		return nil, nil, fmt.Errorf("build SMT: %w", err)
+		return nil, fmt.Errorf("streaming download: %w", err)
 	}
 
-	// Cache for next time
-	if err := n.store.SaveTree(orderID, smt); err != nil {
-		log.Warn().Err(err).Msg("cache save failed")
+	if totalChunks > hashCap {
+		return nil, fmt.Errorf("chunk count %d exceeds expected %d", totalChunks, numChunks)
+	}
+	hashes = hashes[:totalChunks]
+
+	log.Debug().Int("chunks", totalChunks).Msg("streaming hash complete")
+
+	smt, err := merkle.BuildSMTFromLeafHashes(hashes, poi.MaxTreeDepth, n.prover.ZeroLeafHash())
+	if err != nil {
+		return nil, fmt.Errorf("build SMT: %w", err)
 	}
 
-	return smt, chunks, nil
+	return smt, nil
 }
