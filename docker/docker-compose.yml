@@ -22,12 +22,14 @@ services:
       - ./ipfs/001-bind-localhost.sh:/container-init.d/001-bind-localhost.sh:ro
     environment:
       - IPFS_PROFILE=flatfs
+      # Accelerated DHT client needs more file descriptors for parallel lookups.
+      - IPFS_FD_MAX=8192
     healthcheck:
       test: ["CMD-SHELL", "ipfs id || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
     restart: unless-stopped
 
   # ── MuriData Storage Node ──

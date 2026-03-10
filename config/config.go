@@ -130,9 +130,11 @@ func DefaultConfig() *Config {
 			ListenMode:         "poll",
 		},
 		IPFS: IPFSConfig{
-			APIURL:   "http://127.0.0.1:5001",
-			Timeout:  tomlDuration{30 * time.Second},
-			PinFiles: true,
+			APIURL:     "http://127.0.0.1:5001",
+			Timeout:    tomlDuration{30 * time.Second},
+			PinFiles:   true,
+			MaxRetries: 4,
+			RetryDelay: tomlDuration{2 * time.Second},
 		},
 		Node: NodeConfig{
 			DataDir: "./data",
