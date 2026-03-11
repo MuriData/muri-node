@@ -235,6 +235,8 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 				log.Info().Str("tx", firstTxHash.Hex()).Msg("nonce consumed — recovering receipt for original tx")
 				if receipt, recErr := c.recoverReceipt(ctx, firstTxHash); recErr == nil {
 					return receipt, nil
+				} else {
+					log.Warn().Err(recErr).Str("tx", firstTxHash.Hex()).Msg("receipt recovery failed")
 				}
 			}
 			lastErr = err

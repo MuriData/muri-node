@@ -8,7 +8,7 @@ services:
   # ── Avalanche L1 RPC Node ──
   # Host networking so avago P2P (9651) is directly reachable.
   avago:
-    image: ghcr.io/muridata/murichain-subnet-evm:latest
+    image: ghcr.io/muridata/murichain-subnet-evm:0.2.0
     network_mode: host
     volumes:
       - avago_data:/root/.avalanchego
