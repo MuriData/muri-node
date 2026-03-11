@@ -407,6 +407,10 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 		if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
 			continue
 		}
+		if slot.Randomness == nil || slot.Randomness.Sign() == 0 {
+			log.Warn().Int("slot", slot.Index).Msg("poll slot has no randomness, skipping")
+			continue
+		}
 		// Skip if we already proved this exact (slot, randomness) — protects
 		// against stale RPC data causing re-dispatch of already-proved challenges.
 		proofKey := fmt.Sprintf("%d:%s", slot.Index, slot.Randomness.Text(16))
@@ -837,12 +841,13 @@ func (n *Node) checkOrders(ctx context.Context) error {
 				n.processCandidate(ctx, c)
 			}(cand)
 		default:
-			// All workers busy — this candidate will be retried next tick
+			// All workers busy — remaining candidates will be retried next tick
 			n.inFlightOrders.Delete(cand.id.String())
 			log.Debug().Str("orderID", cand.id.String()).Msg("workers busy, deferring to next tick")
-			break
+			goto doneDispatching
 		}
 	}
+doneDispatching:
 
 	if dispatched > 0 {
 		log.Info().Int("dispatched", dispatched).Msg("order candidates dispatched")

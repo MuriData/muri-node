@@ -188,13 +188,6 @@ func (n *Node) processDeferredCleanups(ctx context.Context) {
 
 // isOrderInFlightChallenge checks if any challenge goroutine is working on the given order.
 func (n *Node) isOrderInFlightChallenge(orderID string) bool {
-	found := false
-	n.inFlightChallengeOrders.Range(func(key, _ any) bool {
-		if key.(string) == orderID {
-			found = true
-			return false
-		}
-		return true
-	})
-	return found
+	_, ok := n.inFlightChallengeOrders.Load(orderID)
+	return ok
 }
