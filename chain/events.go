@@ -2,6 +2,7 @@ package chain
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -85,6 +86,10 @@ func (el *EventListener) challengeSubscriptionLoop(ctx context.Context, out chan
 	}
 }
 
+// enrichRetries is how many times we retry GetSlotInfo when the RPC returns
+// stale data that doesn't match the event (HTTP endpoint lagging behind WS).
+const enrichRetries = 3
+
 func (el *EventListener) processChallengeEvents(
 	ctx context.Context,
 	sink <-chan *bindings.FileMarketSlotChallengeIssued,
@@ -112,10 +117,13 @@ func (el *EventListener) processChallengeEvents(
 				Uint64("deadline", ev.DeadlineBlock.Uint64()).
 				Msg("challenge event received")
 
-			// Enrich with full slot data (includes randomness)
-			slot, err := el.client.GetSlotInfo(ctx, int(ev.SlotIndex.Int64()))
+			// Enrich with full slot data (includes randomness).
+			// The HTTP RPC may lag behind the WS event, so retry briefly
+			// if the enriched data doesn't match the event.
+			slot, err := el.enrichSlotFromEvent(ctx, ev)
 			if err != nil {
-				log.Error().Err(err).Int64("slot", ev.SlotIndex.Int64()).Msg("failed to fetch slot info for event, skipping (will be caught by fallback poll)")
+				log.Error().Err(err).Int64("slot", ev.SlotIndex.Int64()).
+					Msg("failed to enrich slot from event, skipping (will be caught by fallback poll)")
 				continue
 			}
 
@@ -126,6 +134,50 @@ func (el *EventListener) processChallengeEvents(
 			}
 		}
 	}
+}
+
+// enrichSlotFromEvent fetches full slot data via GetSlotInfo and validates
+// it matches the event fields. Retries with a short delay if the HTTP RPC
+// returns stale data (e.g., hasn't indexed the block that emitted the event yet).
+func (el *EventListener) enrichSlotFromEvent(ctx context.Context, ev *bindings.FileMarketSlotChallengeIssued) (types.ChallengeSlotInfo, error) {
+	slotIndex := int(ev.SlotIndex.Int64())
+
+	for attempt := 0; attempt < enrichRetries; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return types.ChallengeSlotInfo{}, ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
+		}
+
+		slot, err := el.client.GetSlotInfo(ctx, slotIndex)
+		if err != nil {
+			log.Warn().Err(err).Int("slot", slotIndex).Int("attempt", attempt+1).
+				Msg("GetSlotInfo failed during enrichment")
+			continue
+		}
+
+		// Validate enriched data matches the event — detects stale RPC responses.
+		// The event is authoritative (came from the chain log), so if GetSlotInfo
+		// returns different data, the HTTP RPC hasn't caught up yet.
+		if slot.ChallengedNode != ev.ChallengedNode {
+			log.Warn().Int("slot", slotIndex).Int("attempt", attempt+1).
+				Str("event_node", ev.ChallengedNode.Hex()).
+				Str("rpc_node", slot.ChallengedNode.Hex()).
+				Msg("enrichment mismatch: RPC returned stale slot data, retrying")
+			continue
+		}
+		if slot.OrderID == nil || slot.OrderID.Cmp(ev.OrderId) != 0 {
+			log.Warn().Int("slot", slotIndex).Int("attempt", attempt+1).
+				Msg("enrichment mismatch: order ID differs, retrying")
+			continue
+		}
+
+		return slot, nil
+	}
+
+	return types.ChallengeSlotInfo{}, fmt.Errorf("slot %d enrichment failed after %d attempts (stale RPC)", slotIndex, enrichRetries)
 }
 
 // SubscribeNewOrders returns a channel that emits order IDs when new orders are placed.

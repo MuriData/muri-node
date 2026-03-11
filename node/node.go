@@ -99,6 +99,10 @@ type Node struct {
 	// repinFailures tracks CIDs that failed re-pin, with timestamp of first failure.
 	// Used to escalate log level on repeated failures.
 	repinFailures sync.Map // CID string → time.Time
+
+	// recentProofs tracks (slotIndex, randomness) pairs for recently submitted proofs.
+	// Prevents re-dispatching the same challenge when RPC returns stale slot data.
+	recentProofs sync.Map // "slot:randomnessHex" → time.Time
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -330,6 +334,19 @@ func (n *Node) challengeLoopEvents(ctx context.Context) error {
 			if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
 				continue
 			}
+			if slot.Randomness == nil || slot.Randomness.Sign() == 0 {
+				log.Warn().Int("slot", slot.Index).Msg("event slot has no randomness, skipping")
+				continue
+			}
+			// Skip if we already proved this exact (slot, randomness)
+			proofKey := fmt.Sprintf("%d:%s", slot.Index, slot.Randomness.Text(16))
+			if ts, ok := n.recentProofs.Load(proofKey); ok {
+				if time.Since(ts.(time.Time)) < 10*time.Minute {
+					log.Debug().Int("slot", slot.Index).Msg("event for already-proved challenge, skipping")
+					continue
+				}
+				n.recentProofs.Delete(proofKey)
+			}
 			// Dispatch through concurrent handler so events don't block each other.
 			blockNum, _ := n.chain.BlockNumber(ctx)
 			go func(s types.ChallengeSlotInfo) {
@@ -389,6 +406,16 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 		}
 		if slot.OrderID == nil || slot.OrderID.Sign() == 0 {
 			continue
+		}
+		// Skip if we already proved this exact (slot, randomness) — protects
+		// against stale RPC data causing re-dispatch of already-proved challenges.
+		proofKey := fmt.Sprintf("%d:%s", slot.Index, slot.Randomness.Text(16))
+		if ts, ok := n.recentProofs.Load(proofKey); ok {
+			if time.Since(ts.(time.Time)) < 10*time.Minute {
+				log.Debug().Int("slot", slot.Index).Msg("skipping already-proved challenge")
+				continue
+			}
+			n.recentProofs.Delete(proofKey) // expired entry
 		}
 		tasks = append(tasks, slot)
 	}
@@ -535,8 +562,9 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
 	freshSlot, err := n.chain.GetSlotInfo(ctx, slotIndex)
 	if err != nil {
-		log.Warn().Err(err).Int("slot", slotIndex).Msg("pre-submit slot check failed, submitting anyway")
-	} else if freshSlot.Randomness == nil || freshSlot.Randomness.Cmp(randomness) != 0 {
+		return fmt.Errorf("slot %d pre-submit check failed (aborting to avoid stale submission): %w", slotIndex, err)
+	}
+	if freshSlot.Randomness == nil || freshSlot.Randomness.Cmp(randomness) != 0 {
 		return fmt.Errorf("slot %d randomness changed during proving, skipping stale proof", slotIndex)
 	}
 
@@ -545,6 +573,10 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	if err != nil {
 		return fmt.Errorf("submit proof: %w", err)
 	}
+
+	// Track this proof to prevent re-dispatch if RPC serves stale slot data
+	proofKey := fmt.Sprintf("%d:%s", slotIndex, randomness.Text(16))
+	n.recentProofs.Store(proofKey, time.Now())
 
 	log.Info().
 		Int("slot", slotIndex).
