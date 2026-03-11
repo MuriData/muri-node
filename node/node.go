@@ -525,13 +525,14 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	if ref == "" {
 		return fmt.Errorf("no CID found in URI: %s", order.URI)
 	}
+	rawBlock := isRawBlockURI(order.URI)
 
 	// 2. Try fast path: cached SMT + selective chunk fetch
 	var result *prover.ProofResult
 	var path string
 	smt, err := n.store.LoadTree(orderID, n.prover.ZeroLeafHash())
 	if err == nil && smt != nil && order.RootHash != nil && smt.RootBigInt().Cmp(order.RootHash) == 0 {
-		result, err = n.proveSelective(ctx, randomness, smt, ref)
+		result, err = n.proveSelective(ctx, randomness, smt, ref, rawBlock)
 		if err != nil {
 			log.Warn().Err(err).Str("orderID", orderID.String()).Msg("selective proof failed, falling back to full download")
 			result = nil
@@ -543,12 +544,17 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 	// 3. Slow path: stream download → hash → build SMT → prove selectively.
 	// The full file is never buffered — chunks are hashed on the fly during
 	// download, then only the 8 challenged chunks (~128 KB) are re-fetched.
+	// For raw block URIs (?type=raw), use block/get instead of cat.
 	if result == nil {
 		fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(order.NumChunks))
-		smt, err = n.buildSMTStreaming(fetchCtx, ref, order.NumChunks)
+		if isRawBlockURI(order.URI) {
+			smt, err = n.buildSMTFromRawBlock(fetchCtx, ref)
+		} else {
+			smt, err = n.buildSMTStreaming(fetchCtx, ref, order.NumChunks)
+		}
 		fetchCancel()
 		if err != nil {
-			return fmt.Errorf("streaming build smt %s: %w", ref, err)
+			return fmt.Errorf("build smt %s: %w", ref, err)
 		}
 
 		// Cache for future challenge responses
@@ -556,7 +562,7 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 			log.Warn().Err(saveErr).Str("orderID", orderID.String()).Msg("cache tree failed (non-fatal)")
 		}
 
-		result, err = n.proveSelective(ctx, randomness, smt, ref)
+		result, err = n.proveSelective(ctx, randomness, smt, ref, rawBlock)
 		if err != nil {
 			return fmt.Errorf("generate proof (streaming+selective): %w", err)
 		}
@@ -600,7 +606,8 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 
 // proveSelective generates a proof by fetching only the 8 challenged chunks
 // (via IPFS byte-range requests) instead of downloading the entire file.
-func (n *Node) proveSelective(ctx context.Context, randomness *big.Int, smt *merkle.SparseMerkleTree, ref string) (*prover.ProofResult, error) {
+// For raw block URIs, fetches the whole block (typically tiny) and slices locally.
+func (n *Node) proveSelective(ctx context.Context, randomness *big.Int, smt *merkle.SparseMerkleTree, ref string, rawBlock bool) (*prover.ProofResult, error) {
 	// Derive the 8 leaf indices the circuit will open
 	indices := prover.DeriveLeafIndices(randomness, smt.NumLeaves)
 
@@ -610,9 +617,14 @@ func (n *Node) proveSelective(ctx context.Context, randomness *big.Int, smt *mer
 		unique[idx] = struct{}{}
 	}
 
-	// Fetch unique chunks in parallel via byte-range requests
 	fetchCtx, fetchCancel := context.WithTimeout(ctx, 2*time.Minute)
-	chunkMap, err := n.fetchChunksSelective(fetchCtx, ref, unique)
+	var chunkMap map[int][]byte
+	var err error
+	if rawBlock {
+		chunkMap, err = n.fetchChunksFromBlock(fetchCtx, ref, unique)
+	} else {
+		chunkMap, err = n.fetchChunksSelective(fetchCtx, ref, unique)
+	}
 	fetchCancel()
 	if err != nil {
 		return nil, fmt.Errorf("selective fetch: %w", err)
@@ -669,6 +681,28 @@ func (n *Node) fetchChunksSelective(ctx context.Context, ref string, indices map
 			return nil, fmt.Errorf("chunk %d: %w", r.idx, r.err)
 		}
 		m[r.idx] = r.data
+	}
+	return m, nil
+}
+
+// fetchChunksFromBlock fetches a raw IPFS block and extracts the requested
+// chunk indices locally. Raw blocks are typically tiny (< 1 KB for directory
+// DAG nodes), so fetching the whole block is cheaper than byte-range requests.
+func (n *Node) fetchChunksFromBlock(ctx context.Context, ref string, indices map[int]struct{}) (map[int][]byte, error) {
+	data, err := n.ipfs.BlockGetWithRetry(ctx, ref)
+	if err != nil {
+		return nil, fmt.Errorf("block get: %w", err)
+	}
+
+	allChunks := merkle.SplitIntoChunks(data, poi.FileSize)
+	m := make(map[int][]byte, len(indices))
+	for idx := range indices {
+		if idx < len(allChunks) {
+			m[idx] = allChunks[idx]
+		} else {
+			// Zero chunk for indices beyond data (padding)
+			m[idx] = make([]byte, poi.FileSize)
+		}
 	}
 	return m, nil
 }
@@ -947,10 +981,17 @@ func (n *Node) collectCandidates(ctx context.Context, existing map[string]bool, 
 // processCandidate handles a single order: fetch → verify → prove → execute.
 // Runs concurrently from checkOrders; errors are logged, not returned.
 func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
-	// Stream download → hash chunks → build SMT. The full file is never
-	// buffered in memory — only ~1 MB download segments are held at a time.
+	// Fetch file and build SMT. For raw block URIs (?type=raw), use block/get;
+	// otherwise stream download with cat. The full file is never buffered in
+	// memory — only ~1 MB download segments are held at a time.
 	fetchCtx, fetchCancel := context.WithTimeout(ctx, fetchTimeout(cand.order.NumChunks))
-	smt, err := n.buildSMTStreaming(fetchCtx, cand.ref, cand.order.NumChunks)
+	var smt *merkle.SparseMerkleTree
+	var err error
+	if isRawBlockURI(cand.order.URI) {
+		smt, err = n.buildSMTFromRawBlock(fetchCtx, cand.ref)
+	} else {
+		smt, err = n.buildSMTStreaming(fetchCtx, cand.ref, cand.order.NumChunks)
+	}
 	fetchCancel()
 	if err != nil {
 		n.fetchFailures.Store(cand.rootCID, time.Now())
@@ -968,7 +1009,7 @@ func (n *Node) processCandidate(ctx context.Context, cand orderCandidate) {
 
 	publicKey := prover.PublicKeyFromSecret(n.secretKey)
 	randomness := deriveExecutionRandomness(cand.order.RootHash, publicKey)
-	proofResult, err := n.proveSelective(ctx, randomness, smt, cand.ref)
+	proofResult, err := n.proveSelective(ctx, randomness, smt, cand.ref, isRawBlockURI(cand.order.URI))
 	if err != nil {
 		log.Warn().Err(err).Str("orderID", cand.id.String()).Msg("skip: proof generation failed")
 		return
@@ -1232,13 +1273,18 @@ func (n *Node) pruneStaleCache(orders []*big.Int) {
 	}
 }
 
-// extractIPFSRef extracts the full IPFS reference (CID or CID/path) from a URI.
-// Supports formats: "ipfs://CID", "ipfs://CID/path/to/file", or raw CID.
-// The returned value can be passed directly to IPFS Cat.
+// extractIPFSRef extracts the full IPFS reference (CID or CID/path) from a URI,
+// stripping the ipfs:// scheme and any query parameters.
+// Supports formats: "ipfs://CID", "ipfs://CID/path/to/file", "ipfs://CID?type=raw", or raw CID.
+// The returned value can be passed directly to IPFS Cat or BlockGet.
 func extractIPFSRef(uri string) string {
 	uri = strings.TrimSpace(uri)
 	if strings.HasPrefix(uri, "ipfs://") {
 		uri = strings.TrimPrefix(uri, "ipfs://")
+	}
+	// Strip query parameters (e.g. ?type=raw)
+	if idx := strings.Index(uri, "?"); idx >= 0 {
+		uri = uri[:idx]
 	}
 	uri = strings.TrimRight(uri, "/")
 	if uri == "" {
@@ -1247,8 +1293,26 @@ func extractIPFSRef(uri string) string {
 	return uri
 }
 
-// extractRootCID extracts just the root CID from a URI, stripping any subpath.
-// Use this for Pin/Unpin operations that apply to the whole DAG.
+// isRawBlockURI returns true if the URI has ?type=raw, indicating the CID
+// points to a raw IPFS block (e.g. a directory DAG node) that must be fetched
+// via block/get instead of cat.
+func isRawBlockURI(uri string) bool {
+	uri = strings.TrimSpace(uri)
+	idx := strings.Index(uri, "?")
+	if idx < 0 {
+		return false
+	}
+	query := uri[idx+1:]
+	for _, param := range strings.Split(query, "&") {
+		if param == "type=raw" {
+			return true
+		}
+	}
+	return false
+}
+
+// extractRootCID extracts just the root CID from a URI, stripping any subpath
+// and query parameters. Use this for Pin/Unpin operations that apply to the whole DAG.
 func extractRootCID(uri string) string {
 	ref := extractIPFSRef(uri)
 	if idx := strings.Index(ref, "/"); idx > 0 {
@@ -1327,6 +1391,33 @@ func (n *Node) buildSMTStreaming(ctx context.Context, ref string, numChunks uint
 	hashes = hashes[:totalChunks]
 
 	log.Debug().Int("chunks", totalChunks).Msg("streaming hash complete")
+
+	smt, err := merkle.BuildSMTFromLeafHashes(hashes, poi.MaxTreeDepth, n.prover.ZeroLeafHash())
+	if err != nil {
+		return nil, fmt.Errorf("build SMT: %w", err)
+	}
+
+	return smt, nil
+}
+
+// buildSMTFromRawBlock fetches a raw IPFS block (e.g. a directory DAG node)
+// via block/get and builds an SMT from its bytes. Raw blocks are typically
+// small (< 1 MB) so no streaming is needed.
+func (n *Node) buildSMTFromRawBlock(ctx context.Context, ref string) (*merkle.SparseMerkleTree, error) {
+	data, err := n.ipfs.BlockGetWithRetry(ctx, ref)
+	if err != nil {
+		return nil, fmt.Errorf("block get: %w", err)
+	}
+
+	chunks := merkle.SplitIntoChunks(data, poi.FileSize)
+	if len(chunks) == 0 {
+		return nil, fmt.Errorf("empty block data for %s", ref)
+	}
+
+	hashes := make([]fr.Element, len(chunks))
+	for i, chunk := range chunks {
+		hashes[i] = poi.HashChunk(chunk)
+	}
 
 	smt, err := merkle.BuildSMTFromLeafHashes(hashes, poi.MaxTreeDepth, n.prover.ZeroLeafHash())
 	if err != nil {

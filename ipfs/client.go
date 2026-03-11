@@ -71,6 +71,35 @@ func NewClient(cfg config.IPFSConfig) *Client {
 	}
 }
 
+// BlockGet fetches the raw block bytes of a CID via /api/v0/block/get.
+// Unlike Cat (which traverses UnixFS), this returns the exact block stored
+// under the CID — including directory DAG-PB nodes that Cat cannot read.
+func (c *Client) BlockGet(ctx context.Context, cid string) ([]byte, error) {
+	url := c.apiEndpoint("/api/v0/block/get", cid)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ipfs block get: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ipfs block get %s: status %d: %s", cid, resp.StatusCode, string(body))
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+// BlockGetWithRetry fetches a raw block with exponential backoff retry.
+func (c *Client) BlockGetWithRetry(ctx context.Context, cid string) ([]byte, error) {
+	return c.withRetry(ctx, func() ([]byte, error) { return c.BlockGet(ctx, cid) })
+}
+
 // Cat fetches the raw bytes of a CID from IPFS.
 // Connection and response-header timeouts are handled by the transport.
 // Body streaming uses an idle timeout so arbitrarily large files can transfer
