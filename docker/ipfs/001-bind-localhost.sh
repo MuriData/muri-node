@@ -98,6 +98,15 @@ ipfs config --bool Swarm.EnableHolePunching true
 ipfs config --json Experimental.OptimisticProvide true
 ipfs config --json Experimental.OptimisticProvideJobsPoolSize 60
 
+# ── Garbage collection: reclaim space from unpinned transient blocks ──
+# GC runs automatically when the repo exceeds StorageMax. Only unpinned
+# blocks are removed — all pinned order CIDs are safe. GCPeriod controls
+# how often the check runs (not how long GC takes).
+# StorageMax should be well above the node's committed storage capacity
+# to leave headroom for transient Bitswap blocks and DAG traversal cache.
+ipfs config --json Datastore.StorageMax '"50GB"'
+ipfs config --json Datastore.GCPeriod '"1h"'
+
 # ── Resource manager: raise limits for storage workload ───────────────
 # Default limits can throttle under heavy block exchange. Raise the
 # system-wide limits to accommodate many concurrent transfers.

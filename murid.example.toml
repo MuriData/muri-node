@@ -21,6 +21,8 @@ timeout = "30s"        # idle timeout (stall detection) + response header timeou
 pin_files = true
 max_retries = 4        # retry attempts for file fetch (exponential backoff)
 retry_delay = "2s"     # initial delay (doubles each retry: 2s, 4s, 8s, 16s)
+pin_verify_interval = "30m"  # verify all order CIDs are still pinned (re-pin if missing)
+provide_interval = "4h"      # re-announce order CIDs to DHT (supplements Kubo's reprovider)
 
 [node]
 private_key_path = "./keys/node.key"    # hex-encoded EVM private key

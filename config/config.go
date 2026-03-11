@@ -38,11 +38,13 @@ type ChainConfig struct {
 
 // IPFSConfig holds IPFS Kubo API settings.
 type IPFSConfig struct {
-	APIURL     string       `toml:"api_url"`
-	Timeout    tomlDuration `toml:"timeout"`
-	PinFiles   bool         `toml:"pin_files"`
-	MaxRetries int          `toml:"max_retries"`  // retry attempts for Cat (default 4)
-	RetryDelay tomlDuration `toml:"retry_delay"`  // initial backoff delay (default 2s, doubles each retry)
+	APIURL            string       `toml:"api_url"`
+	Timeout           tomlDuration `toml:"timeout"`
+	PinFiles          bool         `toml:"pin_files"`
+	MaxRetries        int          `toml:"max_retries"`          // retry attempts for Cat (default 4)
+	RetryDelay        tomlDuration `toml:"retry_delay"`          // initial backoff delay (default 2s, doubles each retry)
+	PinVerifyInterval tomlDuration `toml:"pin_verify_interval"` // how often to verify pins are intact (default 30m)
+	ProvideInterval   tomlDuration `toml:"provide_interval"`    // how often to re-announce CIDs to DHT (default 4h)
 }
 
 // NodeConfig holds node identity settings.
@@ -130,11 +132,13 @@ func DefaultConfig() *Config {
 			ListenMode:         "poll",
 		},
 		IPFS: IPFSConfig{
-			APIURL:     "http://127.0.0.1:5001",
-			Timeout:    tomlDuration{30 * time.Second},
-			PinFiles:   true,
-			MaxRetries: 4,
-			RetryDelay: tomlDuration{2 * time.Second},
+			APIURL:            "http://127.0.0.1:5001",
+			Timeout:           tomlDuration{30 * time.Second},
+			PinFiles:          true,
+			MaxRetries:        4,
+			RetryDelay:        tomlDuration{2 * time.Second},
+			PinVerifyInterval: tomlDuration{30 * time.Minute},
+			ProvideInterval:   tomlDuration{4 * time.Hour},
 		},
 		Node: NodeConfig{
 			DataDir: "./data",

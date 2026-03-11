@@ -89,6 +89,16 @@ type Node struct {
 
 	// startupCleanupDone ensures orphaned pin cleanup runs only once (at startup).
 	startupCleanupDone atomic.Bool
+
+	// lastPinVerify tracks when pin verification last ran.
+	lastPinVerify atomic.Value // stores time.Time
+
+	// lastProvide tracks when DHT provide last ran.
+	lastProvide atomic.Value // stores time.Time
+
+	// repinFailures tracks CIDs that failed re-pin, with timestamp of first failure.
+	// Used to escalate log level on repeated failures.
+	repinFailures sync.Map // CID string → time.Time
 }
 
 // Pause stops accepting new orders. Challenge responses continue.
@@ -175,7 +185,7 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 		prevOrders = rebuildOrderMap(ctx, chainClient)
 	}
 
-	return &Node{
+	n := &Node{
 		cfg:        cfg,
 		chain:      chainClient,
 		ipfs:       ipfsClient,
@@ -183,7 +193,15 @@ func New(ctx context.Context, cfg *config.Config) (*Node, error) {
 		store:      store,
 		secretKey:  sk,
 		prevOrders: prevOrders,
-	}, nil
+	}
+
+	// Defer first pin verify / provide until a full interval after startup.
+	// The startup maintenance tick already handles orphaned pins and order
+	// detection — running these immediately would double startup latency.
+	n.lastPinVerify.Store(time.Now())
+	n.lastProvide.Store(time.Now())
+
+	return n, nil
 }
 
 // rebuildOrderMap fetches current orders from chain and builds the
@@ -1038,6 +1056,28 @@ func (n *Node) runMaintenance(ctx context.Context) {
 		n.startupCleanupDone.Store(true)
 		n.cleanOrphanedPins(ctx)
 	}
+
+	// ── Periodic IPFS maintenance ──
+
+	// Verify all active order CIDs are still pinned locally.
+	pinInterval := n.cfg.IPFS.PinVerifyInterval.Duration
+	if pinInterval == 0 {
+		pinInterval = 30 * time.Minute
+	}
+	if n.cfg.IPFS.PinFiles && isDue(&n.lastPinVerify, pinInterval) {
+		n.verifyPins(ctx, n.prevOrders)
+		n.lastPinVerify.Store(time.Now())
+	}
+
+	// Re-announce active order CIDs to the DHT (supplements Kubo's reprovider).
+	provideInterval := n.cfg.IPFS.ProvideInterval.Duration
+	if provideInterval == 0 {
+		provideInterval = 4 * time.Hour
+	}
+	if n.cfg.IPFS.PinFiles && isDue(&n.lastProvide, provideInterval) {
+		n.lastProvide.Store(time.Now())
+		go n.provideAll(context.Background(), copyOrderMap(n.prevOrders))
+	}
 }
 
 // cleanOrphanedPins finds IPFS pins for orders that have stale .smt cache files
@@ -1252,4 +1292,23 @@ func (n *Node) buildSMTStreaming(ctx context.Context, ref string, numChunks uint
 	}
 
 	return smt, nil
+}
+
+// isDue returns true if the last-run timestamp is older than interval,
+// or if it was never set (nil). Used to gate infrequent maintenance tasks.
+func isDue(last *atomic.Value, interval time.Duration) bool {
+	v := last.Load()
+	if v == nil {
+		return true
+	}
+	return time.Since(v.(time.Time)) >= interval
+}
+
+// copyOrderMap returns a shallow copy of m, safe for use in a background goroutine.
+func copyOrderMap(m map[string]string) map[string]string {
+	cp := make(map[string]string, len(m))
+	for k, v := range m {
+		cp[k] = v
+	}
+	return cp
 }

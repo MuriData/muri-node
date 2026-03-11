@@ -16,6 +16,7 @@ services:
   # without Docker NAT. Exposes ports 4001 (swarm), 5001 (API), 8080 (gateway).
   ipfs:
     image: ipfs/kubo:latest
+    command: ["daemon", "--migrate=true", "--enable-gc"]
     network_mode: host
     volumes:
       - ipfs_data:/data/ipfs
