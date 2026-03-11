@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"encoding/hex"
+	"strings"
 
 	"github.com/MuriData/muri-node/chain/bindings"
 	"github.com/MuriData/muri-node/config"
@@ -34,8 +35,9 @@ type Client struct {
 	Staking *bindings.NodeStaking
 
 	// WebSocket client and filterer for event subscriptions (nil if listen_mode == "poll").
-	wsEth    *ethclient.Client
-	Filterer *bindings.FileMarketFilterer
+	wsEth          *ethclient.Client
+	Filterer       *bindings.FileMarketFilterer
+	wsMarketCaller *bindings.FileMarketCaller // read-only caller via WS (bypasses HTTP caching)
 
 	// txMu serializes SendTx calls so concurrent callers (challenge loop,
 	// maintenance loop) don't race on nonce management.
@@ -86,6 +88,13 @@ func NewClient(ctx context.Context, cfg config.ChainConfig, privKeyHex string) (
 				c.wsEth = nil
 			} else {
 				c.Filterer = filterer
+				// Create a read-only market caller via WS for cache-bypassing reads
+				wsCaller, wcErr := bindings.NewFileMarketCaller(marketAddr, wsEth)
+				if wcErr != nil {
+					log.Warn().Err(wcErr).Msg("failed to create WS market caller (will use HTTP for reads)")
+				} else {
+					c.wsMarketCaller = wsCaller
+				}
 				log.Info().Str("ws_url", cfg.WSURL).Msg("WebSocket event subscriptions enabled")
 			}
 		}
@@ -163,11 +172,16 @@ func (c *Client) transactOpts(ctx context.Context) (*bind.TransactOpts, error) {
 // Retries reuse the same nonce so the replacement tx overwrites the stuck
 // original in the mempool instead of queuing behind it.
 // Serialized via txMu to prevent concurrent callers from racing on nonces.
+//
+// When a retry gets "nonce too low", the original tx was mined during the
+// receipt timeout. SendTx recovers by fetching the original tx's receipt
+// instead of reporting failure.
 func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types.Transaction, error)) (*types.Receipt, error) {
 	c.txMu.Lock()
 	defer c.txMu.Unlock()
 
 	var lastErr error
+	var firstTxHash common.Hash // track original tx for nonce-too-low recovery
 	maxRetries := c.cfg.MaxRetries
 	if maxRetries == 0 {
 		maxRetries = 1
@@ -215,9 +229,22 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 
 		tx, err := fn(opts)
 		if err != nil {
+			// "nonce too low" during retry means the original tx was mined
+			// while we were waiting. Recover its receipt instead of failing.
+			if attempt > 0 && isNonceTooLow(err) && firstTxHash != (common.Hash{}) {
+				log.Info().Str("tx", firstTxHash.Hex()).Msg("nonce consumed — recovering receipt for original tx")
+				if receipt, recErr := c.recoverReceipt(ctx, firstTxHash); recErr == nil {
+					return receipt, nil
+				}
+			}
 			lastErr = err
 			log.Warn().Err(err).Int("attempt", attempt+1).Msg("tx submission failed")
 			continue
+		}
+
+		// Track the first successfully submitted tx hash
+		if firstTxHash == (common.Hash{}) {
+			firstTxHash = tx.Hash()
 		}
 
 		receipt, err := c.waitForReceipt(ctx, tx.Hash())
@@ -235,12 +262,49 @@ func (c *Client) SendTx(ctx context.Context, fn func(*bind.TransactOpts) (*types
 		return receipt, nil
 	}
 
+	// Final recovery: if we exhausted retries but have an original tx hash,
+	// try one more time to get its receipt (it may have been mined during
+	// the last retry attempt).
+	if firstTxHash != (common.Hash{}) {
+		if receipt, err := c.recoverReceipt(ctx, firstTxHash); err == nil {
+			return receipt, nil
+		}
+	}
+
 	return nil, fmt.Errorf("all %d attempts failed: %w", maxRetries, lastErr)
 }
 
+// isNonceTooLow checks if an error indicates the nonce has been consumed.
+func isNonceTooLow(err error) bool {
+	return strings.Contains(strings.ToLower(err.Error()), "nonce too low")
+}
+
+// recoverReceipt polls briefly for a transaction receipt that was mined
+// while the retry loop was running. Returns the receipt or an error if
+// not found after a short wait.
+func (c *Client) recoverReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	for i := 0; i < 5; i++ {
+		receipt, err := c.eth.TransactionReceipt(ctx, txHash)
+		if err == nil {
+			if receipt.Status == 0 {
+				return nil, fmt.Errorf("original tx reverted: %s", txHash.Hex())
+			}
+			log.Info().Str("tx", txHash.Hex()).Uint64("block", receipt.BlockNumber.Uint64()).Msg("recovered receipt for original tx (mined during retry)")
+			return receipt, nil
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(2 * time.Second):
+		}
+	}
+	return nil, fmt.Errorf("could not recover receipt for %s", txHash.Hex())
+}
+
 // receiptTimeout bounds how long waitForReceipt will poll for a pending tx
-// before giving up. Prevents a stuck/dropped tx from blocking a loop forever.
-const receiptTimeout = 2 * time.Minute
+// before giving up. Set to 4 minutes to accommodate Avalanche L1's on-demand
+// block production (~150s between blocks in low-traffic periods).
+const receiptTimeout = 4 * time.Minute
 
 // waitForReceipt polls for a transaction receipt, distinguishing
 // "not yet mined" (NotFound) from real RPC errors.

@@ -6,8 +6,10 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/MuriData/muri-node/chain/bindings"
 	"github.com/MuriData/muri-node/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -27,13 +29,72 @@ func (c *Client) GetSlotInfo(ctx context.Context, slotIndex int) (types.Challeng
 	}, nil
 }
 
+// GetSlotInfoFresh queries slot info via the WebSocket client when available,
+// bypassing HTTP reverse-proxy caching. Falls back to the HTTP client if WS
+// is not configured. Used for the pre-submit freshness check where stale data
+// would cause the node to submit to the wrong slot.
+func (c *Client) GetSlotInfoFresh(ctx context.Context, slotIndex int) (types.ChallengeSlotInfo, error) {
+	caller := c.wsMarketCaller
+	if caller == nil {
+		// No WS client — fall back to HTTP
+		return c.GetSlotInfo(ctx, slotIndex)
+	}
+	result, err := caller.GetSlotInfo(c.callOpts(ctx), big.NewInt(int64(slotIndex)))
+	if err != nil {
+		// WS read failed — fall back to HTTP rather than aborting
+		return c.GetSlotInfo(ctx, slotIndex)
+	}
+	return types.ChallengeSlotInfo{
+		Index:          slotIndex,
+		OrderID:        result.OrderId,
+		ChallengedNode: result.ChallengedNode,
+		Randomness:     result.Randomness,
+		DeadlineBlock:  result.DeadlineBlock,
+		IsExpired:      result.IsExpired,
+	}, nil
+}
+
 // GetAllSlotInfo returns all challenge slot states (dynamic count via sqrt scaling).
 func (c *Client) GetAllSlotInfo(ctx context.Context) ([]types.ChallengeSlotInfo, error) {
-	result, err := c.Market.GetAllSlotInfo(c.callOpts(ctx))
+	return c.getAllSlotInfoFrom(ctx, c.Market)
+}
+
+// GetAllSlotInfoFresh queries all slot info via the WebSocket client when available,
+// bypassing HTTP caching. Falls back to HTTP if WS is not configured.
+func (c *Client) GetAllSlotInfoFresh(ctx context.Context) ([]types.ChallengeSlotInfo, error) {
+	if c.wsMarketCaller != nil {
+		slots, err := c.getAllSlotInfoFromCaller(ctx, c.wsMarketCaller)
+		if err == nil {
+			return slots, nil
+		}
+		// WS read failed — fall back to HTTP
+	}
+	return c.GetAllSlotInfo(ctx)
+}
+
+func (c *Client) getAllSlotInfoFrom(ctx context.Context, market *bindings.FileMarket) ([]types.ChallengeSlotInfo, error) {
+	result, err := market.GetAllSlotInfo(c.callOpts(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getAllSlotInfo: %w", err)
 	}
+	return parseAllSlotInfo(result), nil
+}
 
+func (c *Client) getAllSlotInfoFromCaller(ctx context.Context, caller *bindings.FileMarketCaller) ([]types.ChallengeSlotInfo, error) {
+	result, err := caller.GetAllSlotInfo(c.callOpts(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getAllSlotInfo(ws): %w", err)
+	}
+	return parseAllSlotInfo(result), nil
+}
+
+func parseAllSlotInfo(result struct {
+	OrderIds        []*big.Int
+	ChallengedNodes []common.Address
+	Randomnesses    []*big.Int
+	DeadlineBlocks  []*big.Int
+	IsExpired       []bool
+}) []types.ChallengeSlotInfo {
 	n := len(result.OrderIds)
 	slots := make([]types.ChallengeSlotInfo, n)
 	for i := 0; i < n; i++ {
@@ -46,7 +107,7 @@ func (c *Client) GetAllSlotInfo(ctx context.Context) ([]types.ChallengeSlotInfo,
 			IsExpired:      result.IsExpired[i],
 		}
 	}
-	return slots, nil
+	return slots
 }
 
 // GetNodeOrders returns all order IDs assigned to a node.

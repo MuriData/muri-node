@@ -381,7 +381,7 @@ func (n *Node) checkChallenges(ctx context.Context) error {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		slots, slotsErr = n.chain.GetAllSlotInfo(ctx)
+		slots, slotsErr = n.chain.GetAllSlotInfoFresh(ctx)
 	}()
 	go func() {
 		defer wg.Done()
@@ -563,10 +563,15 @@ func (n *Node) respondToChallenge(ctx context.Context, slotIndex int, orderID, r
 		path = "streaming+selective"
 	}
 
-	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s)
-	freshSlot, err := n.chain.GetSlotInfo(ctx, slotIndex)
+	// 4. Verify slot hasn't been re-advanced while we were proving (~20-40s).
+	// Uses the WS client when available to bypass HTTP reverse-proxy caching
+	// that caused the node to submit to wrong slots with stale data.
+	freshSlot, err := n.chain.GetSlotInfoFresh(ctx, slotIndex)
 	if err != nil {
 		return fmt.Errorf("slot %d pre-submit check failed (aborting to avoid stale submission): %w", slotIndex, err)
+	}
+	if freshSlot.ChallengedNode != n.chain.Address() {
+		return fmt.Errorf("slot %d no longer targets this node (challenged: %s), skipping", slotIndex, freshSlot.ChallengedNode.Hex())
 	}
 	if freshSlot.Randomness == nil || freshSlot.Randomness.Cmp(randomness) != 0 {
 		return fmt.Errorf("slot %d randomness changed during proving, skipping stale proof", slotIndex)
