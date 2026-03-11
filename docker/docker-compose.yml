@@ -14,6 +14,10 @@ services:
   # ── IPFS (Kubo) ──
   # Host networking for better DHT discoverability — peers connect directly
   # without Docker NAT. Exposes ports 4001 (swarm), 5001 (API), 8080 (gateway).
+  #
+  # IMPORTANT: Set UDP buffer sizes on the HOST for QUIC performance:
+  #   sudo sysctl -w net.core.rmem_max=7340032 net.core.wmem_max=7340032
+  #   echo 'net.core.rmem_max=7340032\nnet.core.wmem_max=7340032' | sudo tee /etc/sysctl.d/99-ipfs-quic.conf
   ipfs:
     image: ipfs/kubo:latest
     command: ["daemon", "--migrate=true", "--enable-gc"]

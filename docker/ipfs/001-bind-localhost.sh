@@ -8,62 +8,14 @@ ipfs config Addresses.API /ip4/127.0.0.1/tcp/5001
 ipfs config Addresses.Gateway /ip4/127.0.0.1/tcp/8080
 
 # ── Routing: Accelerated DHT + IPNI for fast content discovery ────────
-# Custom routing: DHT (WAN + LAN) in parallel with the IPNI delegated
-# router (cid.contact / delegated-ipfs.dev) for global content indexing.
-# Provides go through both DHT and IPNI so content is discoverable via
-# both the DHT crawl and the Network Indexer.
-ipfs config --json Routing '{
-  "Type": "custom",
-  "Routers": {
-    "dht-wan": {
-      "Type": "dht",
-      "Parameters": {
-        "Mode": "auto",
-        "PublicIPNetwork": true,
-        "AcceleratedDHTClient": true
-      }
-    },
-    "dht-lan": {
-      "Type": "dht",
-      "Parameters": {
-        "Mode": "server",
-        "PublicIPNetwork": false
-      }
-    },
-    "ipni": {
-      "Type": "http",
-      "Parameters": {
-        "Endpoint": "https://delegated-ipfs.dev"
-      }
-    },
-    "parallel-provide": {
-      "Type": "parallel",
-      "Parameters": {
-        "Routers": [
-          { "RouterName": "dht-wan" },
-          { "RouterName": "ipni", "IgnoreErrors": true }
-        ]
-      }
-    },
-    "parallel-find": {
-      "Type": "parallel",
-      "Parameters": {
-        "Routers": [
-          { "RouterName": "dht-lan", "IgnoreErrors": true },
-          { "RouterName": "dht-wan" },
-          { "RouterName": "ipni", "IgnoreErrors": true, "Timeout": "5s" }
-        ]
-      }
-    }
-  },
-  "Methods": {
-    "provide":        { "RouterName": "parallel-provide" },
-    "find-providers": { "RouterName": "parallel-find" },
-    "find-peers":     { "RouterName": "parallel-find" },
-    "get-ipns":       { "RouterName": "dht-wan" },
-    "put-ipns":       { "RouterName": "dht-wan" }
-  }
-}'
+# "auto" mode handles DHT (WAN + LAN) automatically — starts as client,
+# switches to server when publicly reachable. AcceleratedDHTClient scans
+# the full DHT every hour for ~10x faster lookups. DelegatedRouters adds
+# IPNI (cid.contact) for global content indexing alongside the DHT.
+# (Kubo 0.35+: DelegatedRouters replaces verbose Routing.Type=custom)
+ipfs config --json Routing.Type '"auto"'
+ipfs config --json Routing.AcceleratedDHTClient true
+ipfs config --json Routing.DelegatedRouters '["https://delegated-ipfs.dev"]'
 
 # ── Provide: re-announce all pinned content every 12h ─────────────────
 # Default is 22h. Shorter interval keeps provider records fresh in the
