@@ -64,8 +64,13 @@ ipfs config --json Swarm.ResourceMgr.MaxMemory '"2GB"'
 
 # ── Peering: persistent connections to other MuriData nodes ───────────
 # Static peering bypasses DHT for known nodes — blocks transfer directly.
-# Add known MuriData bootstrap/relay peers here as the network grows.
-# Example (uncomment and fill with real multiaddrs):
-# ipfs config --json Peering.Peers '[
-#   { "ID": "12D3KooW...", "Addrs": ["/ip4/X.X.X.X/tcp/4001"] }
-# ]'
+# MuriData bootstrap node — always maintain a direct connection.
+ipfs config --json Peering.Peers '[
+  {
+    "ID": "12D3KooWKN5tbmJjbMtyFKW3QK72KMLS1n59fiuvqQ2yE8hCbYgu",
+    "Addrs": [
+      "/dns4/ipfs-rpc.muri.moe/tcp/4001",
+      "/dns4/ipfs-rpc.muri.moe/udp/4001/quic-v1"
+    ]
+  }
+]'
