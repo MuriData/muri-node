@@ -10,18 +10,22 @@ ipfs config Addresses.Gateway /ip4/127.0.0.1/tcp/8080
 # ── Routing: Accelerated DHT + IPNI for fast content discovery ────────
 # "auto" mode handles DHT (WAN + LAN) automatically — starts as client,
 # switches to server when publicly reachable. AcceleratedDHTClient scans
-# the full DHT every hour for ~10x faster lookups. DelegatedRouters adds
-# IPNI (cid.contact) for global content indexing alongside the DHT.
+# the full DHT every hour for ~10x faster lookups (useful for storage
+# providers that need fast challenge responses). Kubo 0.40 fixed the
+# interaction with DHT sweep so provide waits for initial FullRT crawl.
+# DelegatedRouters adds IPNI (cid.contact) for global content indexing.
 # (Kubo 0.35+: DelegatedRouters replaces verbose Routing.Type=custom)
 ipfs config --json Routing.Type '"auto"'
 ipfs config --json Routing.AcceleratedDHTClient true
 ipfs config --json Routing.DelegatedRouters '["https://delegated-ipfs.dev"]'
 
-# ── Provide: re-announce all pinned content every 12h ─────────────────
-# Default is 22h. Shorter interval keeps provider records fresh in the
-# DHT (records expire after ~24h). "pinned" strategy only announces CIDs
-# we've explicitly pinned (our stored files), not transient cache blocks.
-# (Kubo 0.33+: Reprovider fields migrated to Provide)
+# ── Provide: re-announce pinned content via DHT sweep ─────────────────
+# Kubo 0.39+ enables DHT sweep by default (Provide.DHT.SweepEnabled=true),
+# which spreads reprovide operations smoothly across the interval instead
+# of batching them. "pinned" strategy only announces CIDs we've explicitly
+# pinned (our stored files), not transient cache blocks.
+# Interval of 12h (default 22h) keeps provider records fresh in the DHT
+# (records expire after ~24h).
 ipfs config --json Provide.Strategy '"pinned"'
 ipfs config --json Provide.DHT.Interval '"12h"'
 
@@ -42,13 +46,6 @@ ipfs config --json Swarm.ConnMgr '{
 ipfs config --bool Swarm.RelayClient.Enabled true
 ipfs config --bool Swarm.RelayService.Enabled true
 ipfs config --bool Swarm.EnableHolePunching true
-
-# ── Experimental: faster provide ──────────────────────────────────────
-# OptimisticProvide: speeds up DHT provide by not waiting for all
-# closest peers — stores records at the first reachable ones.
-# OptimisticProvideJobsPoolSize: parallel provide operations.
-ipfs config --json Experimental.OptimisticProvide true
-ipfs config --json Experimental.OptimisticProvideJobsPoolSize 60
 
 # ── Garbage collection: reclaim space from unpinned transient blocks ──
 # GC runs automatically when the repo exceeds StorageMax. Only unpinned
