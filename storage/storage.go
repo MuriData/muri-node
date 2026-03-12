@@ -150,12 +150,6 @@ func (s *Store) orderMapPath() string {
 	return filepath.Join(s.dataDir, "orders.json")
 }
 
-// SaveOrderMap persists the order-ID → root-CID mapping to disk.
-// Deprecated: use SaveOrderMapAtomic for crash-safe writes.
-func (s *Store) SaveOrderMap(orders map[string]string) error {
-	return s.SaveOrderMapAtomic(orders)
-}
-
 // SaveOrderMapAtomic persists the order-ID → root-CID mapping to disk using
 // an atomic write (write to temp file, then rename). This prevents corruption
 // if the process crashes mid-write.

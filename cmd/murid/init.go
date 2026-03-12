@@ -17,18 +17,16 @@ import (
 	"github.com/MuriData/muri-node/storage"
 )
 
-var scanner *bufio.Scanner
-
 // prompt prints a label with a default value and reads user input.
 // Returns the default if the user presses Enter without typing.
-func prompt(label, defaultVal string) string {
+func prompt(sc *bufio.Scanner, label, defaultVal string) string {
 	if defaultVal != "" {
 		fmt.Printf("  %s [%s]: ", label, defaultVal)
 	} else {
 		fmt.Printf("  %s: ", label)
 	}
-	scanner.Scan()
-	val := strings.TrimSpace(scanner.Text())
+	sc.Scan()
+	val := strings.TrimSpace(sc.Text())
 	if val == "" {
 		return defaultVal
 	}
@@ -36,14 +34,14 @@ func prompt(label, defaultVal string) string {
 }
 
 // promptYN asks a yes/no question. Default is indicated by capitalization.
-func promptYN(label string, defaultYes bool) bool {
+func promptYN(sc *bufio.Scanner, label string, defaultYes bool) bool {
 	suffix := "[Y/n]"
 	if !defaultYes {
 		suffix = "[y/N]"
 	}
 	fmt.Printf("  %s %s: ", label, suffix)
-	scanner.Scan()
-	val := strings.ToLower(strings.TrimSpace(scanner.Text()))
+	sc.Scan()
+	val := strings.ToLower(strings.TrimSpace(sc.Text()))
 	if val == "" {
 		return defaultYes
 	}
@@ -63,11 +61,11 @@ func runInit(args []string) {
 	outPath := fs.String("config", "murid.toml", "config file to write")
 	fs.Parse(args)
 
-	scanner = bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	// Check if config already exists
 	if _, err := os.Stat(*outPath); err == nil {
-		if !promptYN(fmt.Sprintf("%s already exists. Overwrite?", *outPath), false) {
+		if !promptYN(scanner, fmt.Sprintf("%s already exists. Overwrite?", *outPath), false) {
 			fmt.Println("Aborted.")
 			return
 		}
@@ -80,29 +78,29 @@ func runInit(args []string) {
 
 	// ── Chain ──
 	fmt.Println("── Chain Configuration ──")
-	rpcURL := prompt("RPC URL", envDefault("MURID_RPC_URL", "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"))
-	chainIDStr := prompt("Chain ID", envDefault("MURID_CHAIN_ID", "97981"))
+	rpcURL := prompt(scanner, "RPC URL", envDefault("MURID_RPC_URL", "https://testnet-rpc.muri.moe/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/rpc"))
+	chainIDStr := prompt(scanner, "Chain ID", envDefault("MURID_CHAIN_ID", "97981"))
 	chainID, _ := strconv.ParseInt(chainIDStr, 10, 64)
 	if chainID == 0 {
 		chainID = 97981
 	}
-	marketAddr := prompt("FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xaab9f94671d6b22eee60509b5c3149e90a78fb54"))
-	listenMode := prompt("Listen mode (poll/events)", "poll")
+	marketAddr := prompt(scanner, "FileMarket contract address", envDefault("MURID_MARKET_ADDRESS", "0xaab9f94671d6b22eee60509b5c3149e90a78fb54"))
+	listenMode := prompt(scanner, "Listen mode (poll/events)", "poll")
 	wsURL := ""
 	if listenMode == "events" {
-		wsURL = prompt("WebSocket URL", "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws")
+		wsURL = prompt(scanner, "WebSocket URL", "ws://127.0.0.1:9650/ext/bc/inP2vNhcVSABGmq39UHwuB9tDxUUWp3g6gpRwdE6TqtAtAWmu/ws")
 	}
 	fmt.Println()
 
 	// ── Node Identity ──
 	fmt.Println("── Node Identity ──")
-	keysDir := prompt("Keys directory", envDefault("MURID_KEYS_DIR", "./keys"))
-	dataDir := prompt("Data directory", envDefault("MURID_DATA_DIR", "./data"))
+	keysDir := prompt(scanner, "Keys directory", envDefault("MURID_KEYS_DIR", "./keys"))
+	dataDir := prompt(scanner, "Data directory", envDefault("MURID_DATA_DIR", "./data"))
 
 	// EVM private key
 	privKeyPath := filepath.Join(keysDir, "node.key")
 	var evmAddr string
-	if promptYN("Generate new EVM private key?", true) {
+	if promptYN(scanner, "Generate new EVM private key?", true) {
 		key, err := ethcrypto.GenerateKey()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "  error: %v\n", err)
@@ -116,12 +114,12 @@ func runInit(args []string) {
 		fmt.Printf("  ✓ EVM private key saved to %s\n", privKeyPath)
 		fmt.Printf("  ✓ Node address: %s\n", evmAddr)
 	} else {
-		privKeyPath = prompt("Path to existing EVM private key", privKeyPath)
+		privKeyPath = prompt(scanner, "Path to existing EVM private key", privKeyPath)
 	}
 
 	// ZK secret key
 	secretKeyPath := filepath.Join(keysDir, "secret.key")
-	if promptYN("Generate new ZK secret key?", true) {
+	if promptYN(scanner, "Generate new ZK secret key?", true) {
 		sk, err := muricrypto.GenerateSecretKey()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "  error: %v\n", err)
@@ -135,34 +133,34 @@ func runInit(args []string) {
 		fmt.Printf("  ✓ ZK secret key saved to %s\n", secretKeyPath)
 		fmt.Printf("  ✓ Public key (for dashboard): 0x%s\n", pk.Text(16))
 	} else {
-		secretKeyPath = prompt("Path to existing ZK secret key", secretKeyPath)
+		secretKeyPath = prompt(scanner, "Path to existing ZK secret key", secretKeyPath)
 	}
 	fmt.Println()
 
 	// ── IPFS ──
 	fmt.Println("── IPFS ──")
-	ipfsURL := prompt("Kubo API URL", envDefault("MURID_IPFS_URL", "http://127.0.0.1:5001"))
-	pinFiles := promptYN("Pin files after download?", true)
+	ipfsURL := prompt(scanner, "Kubo API URL", envDefault("MURID_IPFS_URL", "http://127.0.0.1:5001"))
+	pinFiles := promptYN(scanner, "Pin files after download?", true)
 	fmt.Println()
 
 	// ── Storage ──
 	fmt.Println("── Storage ──")
-	maxCapGBStr := prompt("Max capacity (GB, 0=unlimited)", "10")
+	maxCapGBStr := prompt(scanner, "Max capacity (GB, 0=unlimited)", "10")
 	maxCapGB, _ := strconv.ParseFloat(maxCapGBStr, 64)
 	if maxCapGB < 0 {
 		maxCapGB = 0
 	}
-	minPriceStr := prompt("Min price (wei/chunk/period)", "1000")
+	minPriceStr := prompt(scanner, "Min price (wei/chunk/period)", "1000")
 	minPrice, _ := strconv.ParseUint(minPriceStr, 10, 64)
 	fmt.Println()
 
 	// ── Auto Execute ──
 	fmt.Println("── Order Execution ──")
-	autoExec := promptYN("Auto-execute orders?", true)
+	autoExec := promptYN(scanner, "Auto-execute orders?", true)
 	fmt.Println()
 
 	// ── Download Keys ──
-	downloadKeys := promptYN("Download PoI prover keys now? (~200 MB)", true)
+	downloadKeys := promptYN(scanner, "Download PoI prover keys now? (~200 MB)", true)
 	fmt.Println()
 
 	// ── Write config ──

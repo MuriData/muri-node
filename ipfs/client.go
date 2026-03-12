@@ -1,6 +1,7 @@
 package ipfs
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -9,6 +10,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/MuriData/muri-node/config"
@@ -603,6 +606,97 @@ func truncate(b []byte, n int) string {
 		return string(b)
 	}
 	return string(b[:n]) + "..."
+}
+
+// AddEntry is one entry from a recursive /api/v0/add NDJSON response.
+type AddEntry struct {
+	Hash string `json:"Hash"`
+	Name string `json:"Name"`
+	Size string `json:"Size"`
+}
+
+// AddDirectory uploads a local directory tree to IPFS recursively.
+// Returns all entries (files + intermediate directory DAG nodes) from
+// Kubo's NDJSON response stream. The last entry is the root directory.
+func (c *Client) AddDirectory(ctx context.Context, localPath string) ([]AddEntry, error) {
+	// Collect all files with their relative paths
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+
+	baseDir := filepath.Clean(localPath)
+	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil // Kubo synthesizes directory DAG nodes from file paths
+		}
+		rel, err := filepath.Rel(baseDir, path)
+		if err != nil {
+			return fmt.Errorf("relative path: %w", err)
+		}
+		// Use forward slashes for IPFS paths
+		rel = filepath.ToSlash(rel)
+
+		part, err := writer.CreateFormFile("file", rel)
+		if err != nil {
+			return fmt.Errorf("create form part %s: %w", rel, err)
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("read file %s: %w", path, err)
+		}
+		if _, err := part.Write(data); err != nil {
+			return fmt.Errorf("write file %s: %w", rel, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walk directory: %w", err)
+	}
+	writer.Close()
+
+	u := fmt.Sprintf("%s/api/v0/add?recursive=true&progress=false&wrap-with-directory=true", c.apiURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, &body)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	resp, err := c.httpBulk.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ipfs add directory: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("ipfs add directory: status %d: %s", resp.StatusCode, truncate(respBody, 256))
+	}
+
+	// Parse NDJSON response — one entry per line
+	var entries []AddEntry
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 64*1024), 1024*1024) // 1 MB max line
+	for scanner.Scan() {
+		var entry AddEntry
+		if err := json.Unmarshal(scanner.Bytes(), &entry); err != nil {
+			continue // skip progress lines or malformed entries
+		}
+		if entry.Hash == "" {
+			continue // progress entries don't have Hash
+		}
+		entries = append(entries, entry)
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("read ndjson: %w", err)
+	}
+
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("no entries returned from ipfs add")
+	}
+
+	return entries, nil
 }
 
 // Ping checks connectivity to the IPFS node.

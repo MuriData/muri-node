@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"math/big"
@@ -9,7 +8,6 @@ import (
 	"time"
 
 	"github.com/MuriData/muri-node/chain"
-	"github.com/MuriData/muri-node/config"
 	"github.com/MuriData/muri-node/storage"
 	muricrypto "github.com/MuriData/muri-zkproof/pkg/crypto"
 )
@@ -52,17 +50,12 @@ func runStake(args []string) {
 		}
 	}
 
-	cfg, err := config.Load(*configPath)
+	cfg, client, ctx, cancel, err := loadClient(*configPath, 2*time.Minute)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load config: %v\n", err)
-		os.Exit(1)
+		fatal("%v", err)
 	}
-
-	privKey, err := storage.LoadPrivateKey(cfg.Node.PrivateKeyPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load private key: %v\n", err)
-		os.Exit(1)
-	}
+	defer cancel()
+	defer client.Close()
 
 	sk, err := storage.LoadSecretKey(cfg.Node.SecretKeyPath)
 	if err != nil {
@@ -70,16 +63,6 @@ func runStake(args []string) {
 		os.Exit(1)
 	}
 	publicKey := muricrypto.DerivePublicKey(sk)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
-
-	client, err := chain.NewClient(ctx, cfg.Chain, privKey)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: connect to chain: %v\n", err)
-		os.Exit(1)
-	}
-	defer client.Close()
 
 	// Check if already registered
 	isValid, err := client.IsValidNode(ctx)

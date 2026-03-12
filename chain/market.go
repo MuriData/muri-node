@@ -251,6 +251,34 @@ func (c *Client) QuitOrder(ctx context.Context, orderID *big.Int) (*ethtypes.Rec
 	})
 }
 
+// PlaceOrder creates a new file storage order on-chain. The caller must provide
+// the FSP proof (compressed [4]*big.Int) and send sufficient value to cover
+// numChunks * periods * replicas * pricePerChunkPerPeriod.
+func (c *Client) PlaceOrder(ctx context.Context, fileRoot *big.Int, fileUri string, numChunks uint32, periods uint16, replicas uint8, pricePerChunkPerPeriod *big.Int, fspProof [4]*big.Int) (*big.Int, *ethtypes.Receipt, error) {
+	totalCost := new(big.Int).SetUint64(uint64(numChunks))
+	totalCost.Mul(totalCost, new(big.Int).SetUint64(uint64(periods)))
+	totalCost.Mul(totalCost, pricePerChunkPerPeriod)
+	totalCost.Mul(totalCost, new(big.Int).SetUint64(uint64(replicas)))
+
+	receipt, err := c.SendTx(ctx, func(opts *bind.TransactOpts) (*ethtypes.Transaction, error) {
+		opts.Value = totalCost
+		return c.Market.PlaceOrder(opts, fileRoot, fileUri, numChunks, periods, replicas, pricePerChunkPerPeriod, fspProof)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Parse OrderPlaced event to extract the order ID
+	for _, vLog := range receipt.Logs {
+		parsed, err := c.Market.ParseOrderPlaced(*vLog)
+		if err == nil {
+			return parsed.OrderId, receipt, nil
+		}
+	}
+
+	return nil, receipt, fmt.Errorf("OrderPlaced event not found in receipt")
+}
+
 // HasUnresolvedProofObligation checks if this node has a pending proof.
 func (c *Client) HasUnresolvedProofObligation(ctx context.Context) (bool, error) {
 	return c.Market.HasUnresolvedProofObligation(c.callOpts(ctx), c.addr)

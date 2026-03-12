@@ -92,7 +92,9 @@ func (n *Node) handleControlConn(conn net.Conn) {
 	default:
 		resp = fmt.Sprintf("ERR: unknown command: %s\n", cmd)
 	}
-	conn.Write([]byte(resp))
+	if _, err := conn.Write([]byte(resp)); err != nil {
+		log.Debug().Err(err).Msg("control socket: write response failed")
+	}
 }
 
 // SendControlCommand connects to a running daemon's control socket and sends a command.

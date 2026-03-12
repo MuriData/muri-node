@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -9,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MuriData/muri-node/chain"
-	"github.com/MuriData/muri-node/config"
 	"github.com/MuriData/muri-node/storage"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 )
@@ -123,26 +120,11 @@ func runWalletBalance(args []string) {
 	configPath := fs.String("config", "murid.toml", "path to config file")
 	fs.Parse(args)
 
-	cfg, err := config.Load(*configPath)
+	_, client, ctx, cancel, err := loadClient(*configPath, 30*time.Second)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load config: %v\n", err)
-		os.Exit(1)
+		fatal("%v", err)
 	}
-
-	privKey, err := storage.LoadPrivateKey(cfg.Node.PrivateKeyPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load private key: %v\n", err)
-		os.Exit(1)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	client, err := chain.NewClient(ctx, cfg.Chain, privKey)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: connect to chain: %v\n", err)
-		os.Exit(1)
-	}
 	defer client.Close()
 
 	balance, err := client.GetBalance(ctx)

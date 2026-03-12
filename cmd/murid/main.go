@@ -29,6 +29,7 @@ Commands:
   pause               Stop accepting new orders (daemon keeps responding to challenges)
   resume              Resume accepting new orders
   download-keys       Download PoI prover/verifier keys from GitHub
+  web publish         Upload a directory to IPFS and place orders for all files
 
 Flags:
   -config string   Path to config file (default "murid.toml")
@@ -67,6 +68,18 @@ func main() {
 		runResume(os.Args[2:])
 	case "download-keys":
 		runDownloadKeys(os.Args[2:])
+	case "web":
+		if len(os.Args) < 3 {
+			fmt.Fprintf(os.Stderr, "Usage: murid web <subcommand>\n\nSubcommands:\n  publish   Upload a directory to IPFS and place orders\n")
+			os.Exit(1)
+		}
+		switch os.Args[2] {
+		case "publish":
+			runWebPublish(os.Args[3:])
+		default:
+			fmt.Fprintf(os.Stderr, "unknown web subcommand: %s\n", os.Args[2])
+			os.Exit(1)
+		}
 	case "-h", "--help", "help":
 		fmt.Print(usage)
 		os.Exit(0)

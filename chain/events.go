@@ -32,20 +32,13 @@ func NewEventListener(client *Client) *EventListener {
 	}
 }
 
-// SubscribeChallenges returns a channel that emits fully-populated ChallengeSlotInfo
-// for challenges targeting this node. Events are enriched via GetSlotInfo to include
-// randomness (which the event itself does not contain).
-func (el *EventListener) SubscribeChallenges(ctx context.Context) (<-chan types.ChallengeSlotInfo, error) {
-	ch := make(chan types.ChallengeSlotInfo, 8)
-
-	go el.challengeSubscriptionLoop(ctx, ch)
-
-	return ch, nil
-}
-
-func (el *EventListener) challengeSubscriptionLoop(ctx context.Context, out chan<- types.ChallengeSlotInfo) {
-	defer close(out)
-
+// retrySubscription runs connectAndProcess in a retry-with-backoff loop.
+// connectAndProcess should establish a subscription, process events, and return
+// nil on clean exit (context cancelled) or an error to trigger reconnection.
+// The loop gives up after maxReconnectAttempts consecutive quick failures.
+// If a connection was alive longer than reconnectBackoff before failing,
+// the attempt counter resets (transient disconnection, not a persistent issue).
+func retrySubscription(ctx context.Context, name string, connectAndProcess func(ctx context.Context) error) {
 	for attempt := 0; ; attempt++ {
 		if ctx.Err() != nil {
 			return
@@ -53,10 +46,10 @@ func (el *EventListener) challengeSubscriptionLoop(ctx context.Context, out chan
 
 		if attempt > 0 {
 			if attempt > maxReconnectAttempts {
-				log.Error().Int("attempts", attempt).Msg("challenge subscription: max reconnect attempts reached, falling back to polling")
+				log.Error().Int("attempts", attempt).Msgf("%s: max reconnect attempts reached, falling back to polling", name)
 				return
 			}
-			log.Warn().Int("attempt", attempt).Msg("challenge subscription: reconnecting")
+			log.Warn().Int("attempt", attempt).Msgf("%s: reconnecting", name)
 			select {
 			case <-ctx.Done():
 				return
@@ -64,26 +57,66 @@ func (el *EventListener) challengeSubscriptionLoop(ctx context.Context, out chan
 			}
 		}
 
-		sink := make(chan *bindings.FileMarketSlotChallengeIssued, 8)
-		sub, err := el.client.Filterer.WatchSlotChallengeIssued(&bind.WatchOpts{Context: ctx}, sink, nil)
-		if err != nil {
-			log.Warn().Err(err).Msg("challenge subscription: watch failed")
-			continue
+		start := time.Now()
+		err := connectAndProcess(ctx)
+		if err == nil {
+			return // clean exit (context cancelled)
 		}
+		log.Warn().Err(err).Msgf("%s: error, will reconnect", name)
 
-		// Reset attempt counter on successful subscribe
-		attempt = 0
-
-		if err := el.processChallengeEvents(ctx, sink, sub, out); err != nil {
-			log.Warn().Err(err).Msg("challenge subscription: error, will reconnect")
-			sub.Unsubscribe()
-			continue
+		// Reset attempts if the connection was alive for a while — the
+		// subscribe succeeded and then failed later (transient disconnect).
+		if time.Since(start) > reconnectBackoff {
+			attempt = 0
 		}
-
-		// Context cancelled — clean exit
-		sub.Unsubscribe()
-		return
 	}
+}
+
+// SubscribeChallenges returns a channel that emits fully-populated ChallengeSlotInfo
+// for challenges targeting this node. Events are enriched via GetSlotInfo to include
+// randomness (which the event itself does not contain).
+func (el *EventListener) SubscribeChallenges(ctx context.Context) (<-chan types.ChallengeSlotInfo, error) {
+	ch := make(chan types.ChallengeSlotInfo, 8)
+
+	go func() {
+		defer close(ch)
+		retrySubscription(ctx, "challenge subscription", func(ctx context.Context) error {
+			sink := make(chan *bindings.FileMarketSlotChallengeIssued, 8)
+			sub, err := el.client.Filterer.WatchSlotChallengeIssued(&bind.WatchOpts{Context: ctx}, sink, nil)
+			if err != nil {
+				return fmt.Errorf("watch: %w", err)
+			}
+			defer sub.Unsubscribe()
+			return el.processChallengeEvents(ctx, sink, sub, ch)
+		})
+	}()
+
+	return ch, nil
+}
+
+// SubscribeNewOrders returns a channel that emits order IDs when new orders are placed.
+func (el *EventListener) SubscribeNewOrders(ctx context.Context) (<-chan *big.Int, error) {
+	ch := make(chan *big.Int, 16)
+
+	go func() {
+		defer close(ch)
+		retrySubscription(ctx, "order subscription", func(ctx context.Context) error {
+			sink := make(chan *bindings.FileMarketOrderPlaced, 16)
+			sub, err := el.client.Filterer.WatchOrderPlaced(
+				&bind.WatchOpts{Context: ctx},
+				sink,
+				nil, // no orderId filter
+				nil, // no owner filter
+			)
+			if err != nil {
+				return fmt.Errorf("watch: %w", err)
+			}
+			defer sub.Unsubscribe()
+			return el.processOrderEvents(ctx, sink, sub, ch)
+		})
+	}()
+
+	return ch, nil
 }
 
 // enrichRetries is how many times we retry GetSlotInfo when the RPC returns
@@ -159,8 +192,6 @@ func (el *EventListener) enrichSlotFromEvent(ctx context.Context, ev *bindings.F
 		}
 
 		// Validate enriched data matches the event — detects stale RPC responses.
-		// The event is authoritative (came from the chain log), so if GetSlotInfo
-		// returns different data, the HTTP RPC hasn't caught up yet.
 		if slot.ChallengedNode != ev.ChallengedNode {
 			log.Warn().Int("slot", slotIndex).Int("attempt", attempt+1).
 				Str("event_node", ev.ChallengedNode.Hex()).
@@ -178,62 +209,6 @@ func (el *EventListener) enrichSlotFromEvent(ctx context.Context, ev *bindings.F
 	}
 
 	return types.ChallengeSlotInfo{}, fmt.Errorf("slot %d enrichment failed after %d attempts (stale RPC)", slotIndex, enrichRetries)
-}
-
-// SubscribeNewOrders returns a channel that emits order IDs when new orders are placed.
-func (el *EventListener) SubscribeNewOrders(ctx context.Context) (<-chan *big.Int, error) {
-	ch := make(chan *big.Int, 16)
-
-	go el.orderSubscriptionLoop(ctx, ch)
-
-	return ch, nil
-}
-
-func (el *EventListener) orderSubscriptionLoop(ctx context.Context, out chan<- *big.Int) {
-	defer close(out)
-
-	for attempt := 0; ; attempt++ {
-		if ctx.Err() != nil {
-			return
-		}
-
-		if attempt > 0 {
-			if attempt > maxReconnectAttempts {
-				log.Error().Int("attempts", attempt).Msg("order subscription: max reconnect attempts reached, falling back to polling")
-				return
-			}
-			log.Warn().Int("attempt", attempt).Msg("order subscription: reconnecting")
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(reconnectBackoff):
-			}
-		}
-
-		sink := make(chan *bindings.FileMarketOrderPlaced, 16)
-		sub, err := el.client.Filterer.WatchOrderPlaced(
-			&bind.WatchOpts{Context: ctx},
-			sink,
-			nil, // no orderId filter
-			nil, // no owner filter
-		)
-		if err != nil {
-			log.Warn().Err(err).Msg("order subscription: watch failed")
-			continue
-		}
-
-		// Reset attempt counter on successful subscribe
-		attempt = 0
-
-		if err := el.processOrderEvents(ctx, sink, sub, out); err != nil {
-			log.Warn().Err(err).Msg("order subscription: error, will reconnect")
-			sub.Unsubscribe()
-			continue
-		}
-
-		sub.Unsubscribe()
-		return
-	}
 }
 
 func (el *EventListener) processOrderEvents(

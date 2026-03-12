@@ -40,10 +40,3 @@ type NodeInfo struct {
 	PublicKey *big.Int
 }
 
-// ChallengeTask represents a pending challenge the node must respond to.
-type ChallengeTask struct {
-	SlotIndex  int
-	OrderID    *big.Int
-	Randomness *big.Int
-	Deadline   *big.Int
-}

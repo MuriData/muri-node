@@ -14,6 +14,7 @@ import (
 
 	"github.com/MuriData/muri-node/chain/bindings"
 	"github.com/MuriData/muri-node/config"
+	muritypes "github.com/MuriData/muri-node/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -127,6 +128,25 @@ func (c *Client) Address() common.Address {
 // BlockNumber returns the current block number.
 func (c *Client) BlockNumber(ctx context.Context) (uint64, error) {
 	return c.eth.BlockNumber(ctx)
+}
+
+// HasEventSupport returns true if WebSocket event subscriptions are available.
+func (c *Client) HasEventSupport() bool {
+	return c.Filterer != nil
+}
+
+// SubscribeChallenges returns a channel that emits challenge slot info for
+// challenges targeting this node. Wraps EventListener for interface compatibility.
+func (c *Client) SubscribeChallenges(ctx context.Context) (<-chan muritypes.ChallengeSlotInfo, error) {
+	el := NewEventListener(c)
+	return el.SubscribeChallenges(ctx)
+}
+
+// SubscribeNewOrders returns a channel that emits order IDs when new orders
+// are placed. Wraps EventListener for interface compatibility.
+func (c *Client) SubscribeNewOrders(ctx context.Context) (<-chan *big.Int, error) {
+	el := NewEventListener(c)
+	return el.SubscribeNewOrders(ctx)
 }
 
 // Close shuts down the client connections.

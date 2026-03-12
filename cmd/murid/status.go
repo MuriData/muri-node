@@ -1,16 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
-	"math/big"
 	"os"
 	"time"
-
-	"github.com/MuriData/muri-node/chain"
-	"github.com/MuriData/muri-node/config"
-	"github.com/MuriData/muri-node/storage"
 )
 
 func runStatus(args []string) {
@@ -18,26 +12,11 @@ func runStatus(args []string) {
 	configPath := fs.String("config", "murid.toml", "path to config file")
 	fs.Parse(args)
 
-	cfg, err := config.Load(*configPath)
+	cfg, client, ctx, cancel, err := loadClient(*configPath, 30*time.Second)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load config: %v\n", err)
-		os.Exit(1)
+		fatal("%v", err)
 	}
-
-	privKey, err := storage.LoadPrivateKey(cfg.Node.PrivateKeyPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: load private key: %v\n", err)
-		os.Exit(1)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	client, err := chain.NewClient(ctx, cfg.Chain, privKey)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: connect to chain: %v\n", err)
-		os.Exit(1)
-	}
 	defer client.Close()
 
 	fmt.Printf("Node address: %s\n", client.Address())
@@ -98,27 +77,4 @@ func runStatus(args []string) {
 	}
 
 	fmt.Println()
-}
-
-// formatWei formats a wei amount as a human-readable MURI string.
-func formatWei(wei *big.Int) string {
-	if wei == nil || wei.Sign() == 0 {
-		return "0"
-	}
-	ether := new(big.Float).SetInt(wei)
-	ether.Quo(ether, new(big.Float).SetFloat64(1e18))
-	return ether.Text('f', 6)
-}
-
-// formatChunkSize formats a chunk count as a human-readable size.
-func formatChunkSize(chunks uint64) string {
-	bytes := chunks * 16384
-	switch {
-	case bytes >= 1<<30:
-		return fmt.Sprintf("%.2f GB", float64(bytes)/float64(1<<30))
-	case bytes >= 1<<20:
-		return fmt.Sprintf("%.1f MB", float64(bytes)/float64(1<<20))
-	default:
-		return fmt.Sprintf("%d KB", bytes/1024)
-	}
 }
