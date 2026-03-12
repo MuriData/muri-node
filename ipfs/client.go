@@ -417,8 +417,8 @@ func (c *Client) Add(ctx context.Context, data []byte, filename string) (string,
 	}
 	writer.Close()
 
-	url := c.apiEndpoint("/api/v0/add", "")
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
+	u := fmt.Sprintf("%s/api/v0/add?cid-version=1", c.apiURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, &body)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
 	}
@@ -656,7 +656,7 @@ func (c *Client) AddDirectory(ctx context.Context, localPath string) ([]AddEntry
 	}
 	writer.Close()
 
-	u := fmt.Sprintf("%s/api/v0/add?recursive=true&progress=false&wrap-with-directory=true", c.apiURL)
+	u := fmt.Sprintf("%s/api/v0/add?recursive=true&progress=false&wrap-with-directory=true&cid-version=1", c.apiURL)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, &body)
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
