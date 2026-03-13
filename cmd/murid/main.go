@@ -30,6 +30,8 @@ Commands:
   resume              Resume accepting new orders
   download-keys       Download PoI prover/verifier keys from GitHub
   web publish         Upload a directory to IPFS and place orders for all files
+  pin file            Pin an existing IPFS file to MuriData
+  pin dir             Pin an existing IPFS directory to MuriData
 
 Flags:
   -config string   Path to config file (default "murid.toml")
@@ -68,6 +70,8 @@ func main() {
 		runResume(os.Args[2:])
 	case "download-keys":
 		runDownloadKeys(os.Args[2:])
+	case "pin":
+		runPin(os.Args[2:])
 	case "web":
 		if len(os.Args) < 3 {
 			fmt.Fprintf(os.Stderr, "Usage: murid web <subcommand>\n\nSubcommands:\n  publish   Upload a directory to IPFS and place orders\n")

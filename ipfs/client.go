@@ -608,6 +608,67 @@ func truncate(b []byte, n int) string {
 	return string(b[:n]) + "..."
 }
 
+// LsLink is a single link (child entry) in a directory listing from /api/v0/ls.
+type LsLink struct {
+	Name string `json:"Name"`
+	Hash string `json:"Hash"`
+	Size uint64 `json:"Size"`
+	Type int    `json:"Type"` // 1 = file, 2 = directory
+}
+
+// Ls lists the entries of a directory CID via /api/v0/ls.
+// Returns the child links (files and subdirectories) of the given CID.
+func (c *Client) Ls(ctx context.Context, cid string) ([]LsLink, error) {
+	url := c.apiEndpoint("/api/v0/ls", cid)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := c.httpBulk.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ipfs ls: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ipfs ls %s: status %d: %s", cid, resp.StatusCode, truncate(body, 256))
+	}
+
+	var result struct {
+		Objects []struct {
+			Hash  string   `json:"Hash"`
+			Links []LsLink `json:"Links"`
+		} `json:"Objects"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("parse ls response: %w", err)
+	}
+	if len(result.Objects) == 0 {
+		return nil, fmt.Errorf("ipfs ls %s: no objects returned", cid)
+	}
+
+	return result.Objects[0].Links, nil
+}
+
+// LsWithRetry lists directory entries with exponential backoff retry.
+func (c *Client) LsWithRetry(ctx context.Context, cid string) ([]LsLink, error) {
+	var links []LsLink
+	_, err := c.withRetry(ctx, func() ([]byte, error) {
+		var lsErr error
+		links, lsErr = c.Ls(ctx, cid)
+		if lsErr != nil {
+			return nil, lsErr
+		}
+		return []byte("ok"), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return links, nil
+}
+
 // AddEntry is one entry from a recursive /api/v0/add NDJSON response.
 type AddEntry struct {
 	Hash string `json:"Hash"`
